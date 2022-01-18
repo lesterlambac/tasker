@@ -1,5 +1,5 @@
 <template>
-  <KanbanBoard />
+  <Kanban />
 </template>
 
 <script lang="ts">
