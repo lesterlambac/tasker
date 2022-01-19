@@ -23,7 +23,10 @@
       :drop-placeholder="upperDropPlaceholderOptions"
       class="p-3 inline-flex overflow-hidden"
     >
-      <Draggable v-for="column in scene.children" :key="column.id">
+      <Draggable
+        v-for="column in scene.children"
+        :key="column.id + forceRender"
+      >
         <div
           class="mr-3 flex-shrink-0 flex flex-col w-80 bg-gray-100 rounded-md h-full"
         >
@@ -52,7 +55,7 @@
                         <p
                           class="text-sm font-medium leading-snug text-gray-900"
                         >
-                          Provide documentation on integrations
+                          {{ card.description }}
                         </p>
                         <span>
                           <img
@@ -64,7 +67,7 @@
                       </div>
                       <div class="mt-2 flex justify-between items-baseline">
                         <div class="text-sm text-gray-600">
-                          <time datetime="2019-09-14">Sep {{ card.id }}</time>
+                          <time datetime="2019-09-14">{{ card.date }} </time>
                         </div>
                         <div></div>
                       </div>
@@ -78,10 +81,7 @@
       </Draggable>
     </Container>
 
-    <NewIssue
-      v-if="showNewIssueModal"
-      @close="showNewIssueModal = false"
-       />
+    <NewIssue v-if="showNewIssueModal" @close="showNewIssueModal = false" />
   </div>
 </template>
 
@@ -89,22 +89,35 @@
 <script>
 import { Container, Draggable } from "vue-smooth-dnd";
 
-import { defineComponent, nextTick, ref } from "@nuxtjs/composition-api";
+import {
+  defineComponent,
+  nextTick,
+  ref,
+  useContext,
+  useFetch,
+  computed,
+  onMounted,
+} from "@nuxtjs/composition-api";
 import { applyDrag, generateItems } from "../utils/helpers.js";
 
 export default defineComponent({
   components: { Container, Draggable },
   setup() {
+    const { $fire, $fireModule } = useContext();
+    const fireTasks = $fire.database.ref("tasks");
     const showNewIssueModal = ref(false);
+    const forceRender = ref(1);
 
-    const columnNames = ["Pending", "For Review", "Done", "Backlogs"];
-
+    const columnNames = ["Pending", "For Review", "Done"];
+    const pendingTasks = ref([]);
+    const forReviewTasks = ref([]);
+    const doneTasks = ref([]);
     const scene = ref({
       type: "container",
       props: {
         orientation: "horizontal",
       },
-      children: generateItems(4, (i) => ({
+      children: generateItems(columnNames.length, (i) => ({
         id: `column${i}`,
         type: "container",
         name: columnNames[i],
@@ -112,15 +125,59 @@ export default defineComponent({
           orientation: "vertical",
           className: "card-container",
         },
-        children: generateItems(5, (j) => ({
-          type: "draggable",
-          id: `${i}${j}`,
-          props: {
-            className: "card",
-          },
-          data: "",
-        })),
+        children: [],
       })),
+    });
+
+    const tasks = ref([]);
+    const sorter = (a, b) => (a.order > b.order ? 1 : -1);
+    const getTasks = async (items) => {
+      const usortedItems = [];
+
+      items.forEach((child) => {
+        usortedItems.push({
+          id: child.key,
+          ...child.val(),
+        });
+      });
+
+      tasks.value = usortedItems.sort(sorter);
+      pendingTasks.value = [];
+      forReviewTasks.value = [];
+      doneTasks.value = [];
+
+      tasks.value.map((task) => {
+        switch (task.status) {
+          case "Pending":
+            pendingTasks.value.push(task);
+            break;
+          case "For Review":
+            forReviewTasks.value.push(task);
+            break;
+          case "Done":
+            doneTasks.value.push(task);
+            break;
+        }
+      });
+
+      scene.value.children[0].children = pendingTasks.value;
+      scene.value.children[1].children = forReviewTasks.value;
+      scene.value.children[2].children = doneTasks.value;
+
+      forceRender.value = Date.now();
+    };
+
+    const setNewAddedTask = (item) => {
+      scene.value.children[0].children.unshift({
+        id: item.key,
+        order: null,
+        ...item.val(),
+      });
+    };
+
+    onMounted(async () => {
+      fireTasks.orderByChild("description").once("value", getTasks);
+      fireTasks.orderByChild("description").on("child_added", setNewAddedTask);
     });
 
     const onCardDrop = (columnId, dropResult) => {
@@ -132,6 +189,14 @@ export default defineComponent({
         newColumn.children = applyDrag(newColumn.children, dropResult);
         sceneCopy.children.splice(columnIndex, 1, newColumn);
         scene.value = sceneCopy;
+
+        newColumn.children.map((child, index) => {
+          fireTasks.child(child.id).update({
+            order: index,
+            updated: Date.now(),
+            status: columnNames[columnIndex],
+          });
+        });
       }
     };
 
@@ -143,11 +208,9 @@ export default defineComponent({
     };
 
     const onColumnDrop = (dropResult) => {
-      console.log(dropResult);
     };
 
     const dragStart = () => {
-      console.log("drag started");
     };
 
     const log = (...params) => {
@@ -165,6 +228,7 @@ export default defineComponent({
       scene,
       log,
       getCardPayload,
+      forceRender,
       upperDropPlaceholderOptions: {
         className: "cards-drop-preview",
         animationDuration: "150",

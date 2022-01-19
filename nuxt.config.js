@@ -42,6 +42,24 @@ export default {
 
   // Modules: https://go.nuxtjs.dev/config-modules
   modules: [
+    [
+      '@nuxtjs/firebase',
+      {
+        config: {
+          apiKey: 'AIzaSyB2qodMYHEfdf45uYSB8fJW9Bd92VjUxgM',
+          authDomain: 'tasker-husker.firebaseapp.com',
+          projectId: 'tasker-husker',
+          storageBucket: 'tasker-husker.appspot.com',
+          messagingSenderId: '926643923675',
+          appId: '1:926643923675:web:6f45cb8b01d41227e8bafe',
+          measurementId: 'G-8XZE8G6VJZ'
+        },
+        services: {
+          auth: true, // Just as example. Can be any other service.
+          database: true,
+        }
+      }
+    ]
   ],
 
   // Build Configuration: https://go.nuxtjs.dev/config-build
