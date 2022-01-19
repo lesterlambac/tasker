@@ -163,8 +163,9 @@ export default defineComponent({
       date: "",
       label: "",
       status: "Pending",
-      created: Date.now,
-      updated: Date.now,
+      order: null,
+      created: Date.now(),
+      updated: Date.now(),
     });
 
     const filelist = ref([]);

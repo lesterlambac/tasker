@@ -69,7 +69,22 @@
                         <div class="text-sm text-gray-600">
                           <time datetime="2019-09-14">{{ card.date }} </time>
                         </div>
-                        <div></div>
+                        <div>
+                          <span
+                            class="px-2 py-1 leading-tight inline-flex items-center bg-teal-100 rounded"
+                          >
+                            <svg
+                              class="h-2 w-2 text-teal-500"
+                              fill="currentColor"
+                              viewbox="0 0 8 8"
+                            >
+                              <circle cx="4" cy="4" r="3" />
+                            </svg>
+                            <span class="ml-1 text-xs font-medium text-teal-900"
+                              >{{ card.label }}</span
+                            >
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -207,11 +222,9 @@ export default defineComponent({
       };
     };
 
-    const onColumnDrop = (dropResult) => {
-    };
+    const onColumnDrop = (dropResult) => {};
 
-    const dragStart = () => {
-    };
+    const dragStart = () => {};
 
     const log = (...params) => {
       console.log(...params);
