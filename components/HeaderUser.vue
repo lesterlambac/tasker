@@ -39,7 +39,7 @@
           <span class="text-sm text-gray-500">Front-End Developer</span>
         </div>
           <a
-            @click="open = false"
+            @click="signOut"
             class="cursor-pointer block px-4 py-2 text-sm font-medium text-blue-900 hover:bg-gray-200 rounded-md mt-2"
             >Sign Out</a
           >
@@ -50,15 +50,26 @@
 </template>
 
 
-
-<script lang="ts">
-import { defineComponent, ref } from "@nuxtjs/composition-api";
+<script>
+import { defineComponent, ref, useContext } from "@nuxtjs/composition-api";
+import Cookies from "universal-cookie";
 
 export default defineComponent({
   setup() {
+    const cookies = new Cookies();
     const open = ref(false);
+    const { $fire, redirect } = useContext();
+
+    const signOut = () => {
+      cookies.remove('email');
+      cookies.remove('password');
+      $fire.auth.signOut();
+      redirect("/login")
+    }
+
     return {
       open,
+      signOut,
     };
   },
 });

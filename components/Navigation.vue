@@ -11,7 +11,7 @@
         <span class="text-sm font-medium text-gray-900">All</span>
         <!-- <span class="text-xs font-semibold text-gray-700">36</span> -->
       </a>
-      <a
+      <!-- <a
         href="#"
         class="flex justify-between items-center px-3 py-2 rounded-lg"
       >
@@ -22,7 +22,7 @@
         class="flex justify-between items-center px-3 py-2 rounded-lg"
       >
         <span class="text-sm font-medium text-gray-700">Created by me</span>
-      </a>
+      </a> -->
     </div>
 
     <!-- <SidebarTags /> -->

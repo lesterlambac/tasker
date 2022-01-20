@@ -62,6 +62,18 @@ export default {
     ]
   ],
 
+  auth: {
+    persistence: 'local', // default
+    initialize: {
+      onAuthStateChangedMutation: 'ON_AUTH_STATE_CHANGED_MUTATION',
+      onAuthStateChangedAction: 'onAuthStateChangedAction',
+      subscribeManually: false
+    },
+    ssr: false, // default
+    emulatorPort: 9099,
+    emulatorHost: 'http://localhost',
+  },
+
   // Build Configuration: https://go.nuxtjs.dev/config-build
   build: {
   }

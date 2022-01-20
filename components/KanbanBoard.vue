@@ -96,7 +96,7 @@
       </Draggable>
     </Container>
 
-    <NewIssue :cardData="cardData" v-if="showNewIssueModal" @close="showNewIssueModal = false" />
+    <NewIssue :cardData="cardData" :users="users" v-if="showNewIssueModal" @close="showNewIssueModal = false" />
   </div>
 </template>
 
@@ -120,6 +120,7 @@ export default defineComponent({
   setup() {
     const { $fire, $fireModule } = useContext();
     const fireTasks = $fire.database.ref("tasks");
+    const fireUsers = $fire.database.ref("users");
 
     const showNewIssueModal = ref(false);
     const cardData = ref({});
@@ -146,6 +147,7 @@ export default defineComponent({
       })),
     });
 
+    const users = ref([]);
     const tasks = ref([]);
     const sorter = (a, b) => (a.order > b.order ? 1 : -1);
     const getTasks = async (items) => {
@@ -182,6 +184,18 @@ export default defineComponent({
       scene.value.children[2].children = doneTasks.value;
 
       forceRender.value = Date.now();
+    };
+
+    const getUsers = (items) => {
+      const unsortedUsers = [];
+      items.forEach((child) => {
+        unsortedUsers.push({
+          id: child.key,
+          ...child.val(),
+        });
+      });
+      users.value = unsortedUsers.sort(sorter);
+      console.log(users.value)
     };
 
     const setNewAddedTask = (item) => {
@@ -238,6 +252,7 @@ export default defineComponent({
 
     onMounted(async () => {
       fireTasks.orderByChild("order").on("value", getTasks);
+      fireUsers.on("value", getUsers);
     });
 
     return {
@@ -255,6 +270,7 @@ export default defineComponent({
       viewCard,
       createCard,
       cardData,
+      users,
       upperDropPlaceholderOptions: {
         className: "cards-drop-preview",
         animationDuration: "150",

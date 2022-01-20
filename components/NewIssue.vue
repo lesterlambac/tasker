@@ -1,11 +1,10 @@
 <template>
-  <div   @keydown.esc="$emit('close')">
+  <div @keydown.esc="$emit('close')">
     <ModalCenter @close="$emit('close')">
-      
       <div class="inline-block relative float-right">
         <button
           @click="dropdownOpen = !dropdownOpen"
-          class="relative z-10 inline-block rounded-md bg-white p-2 focus:outline-none group"
+          class="relative z-10 inline-block rounded-md p-2 focus:outline-none group"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -30,11 +29,11 @@
           v-show="dropdownOpen"
           class="absolute right-0 mt-1 py-2 w-48 bg-white border border-gray-100 rounded-md shadow-xl z-20"
         >
-          <div
+          <!-- <div
             class="cursor-pointer block px-4 py-2 text-sm capitalize text-gray-700 hover:bg-gray-200 hover:text-gray-900"
           >
             Edit
-          </div>
+          </div> -->
           <div
             class="cursor-pointer block px-4 py-2 text-sm capitalize text-gray-700 hover:bg-gray-200 hover:text-gray-900"
             @click="deleteCard"
@@ -96,7 +95,9 @@
             class="appearance-none border border-gray-200 block w-full px-3 py-2 rounded-md shadow-sm placeholder-grey-light bg-white text-black focus:outline-none focus:border-gray-200 focus:ring-1 focus:ring-gray-200 focus:bg-white focus:text-black text-sm"
           />
 
-          <p v-else class="text-gray-700 mt-6 text-base ">📅 {{ cardData.date }}</p>
+          <p v-else class="text-gray-700 mt-6 text-base">
+            📅 {{ cardData.date }}
+          </p>
         </div>
 
         <div class="mt-2">
@@ -180,6 +181,60 @@
           </div>
         </div>
 
+        <div
+          class="mt-8 space-y-4 bg-white shadow-lg border border-gray-200 rounded-lg p-6"
+        >
+          <div
+            class="flex items-start justify-center space-x-4 pb-4 border-b border-gray-200"
+          >
+            <svg
+              class="flex-none h-8 w-8 rounded-full shadow-sm border-gray-200 fill-current text-gray-500 shadow-sm"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z"
+              ></path>
+            </svg>
+
+            <textarea
+              v-model="comment"
+              @keydown.enter.exact="createComment"
+              placeholder="Leave a comment"
+              rows="2"
+              class="appearance-none border-none block w-full px-3 py-2 rounded-md placeholder-grey-light bg-white text-black focus:outline-none focus:border-gray-200 focus:ring-1 focus:ring-gray-200 focus:bg-white focus:text-black text-sm"
+            ></textarea>
+          </div>
+
+          <div
+            class="flex items-start justify-center space-x-4"
+            v-for="comment in comments"
+            :key="comment.id + forceRender.comments"
+          >
+            <svg
+              class="flex-none h-8 w-8 rounded-full shadow-sm border-gray-200 fill-current text-gray-500 shadow-sm"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z"
+              ></path>
+            </svg>
+
+            <div class="w-full flex-1 bg-gray-50 rounded-lg p-4">
+              <div class="flex items-center justify-center mb-2">
+                <h4 class="text-gray-900 font-medium text-sm flex-1 text-left">
+                  {{ comment.name }}
+                </h4>
+                <span class="text-gray-500 text-sm flex-none">{{
+                  comment.date
+                }}</span>
+              </div>
+              <p class="text-gray-700 text-sm">
+                {{ comment.message }}
+              </p>
+            </div>
+          </div>
+        </div>
+
         <button
           v-if="!cardData.id"
           type="submit"
@@ -217,9 +272,17 @@ export default defineComponent({
       required: false,
       default: {},
     },
+    users: {
+      type: Array,
+      required: false,
+      default: [],
+    },
   },
-  setup({ cardData }, { emit }) {
+  setup({ cardData, users }, { emit }) {
     const { $fire } = useContext();
+    const fireUser = $fire.auth.currentUser;
+    const currentUser = ref();
+    const comments = ref();
 
     const dropdownOpen = ref(false);
 
@@ -233,11 +296,13 @@ export default defineComponent({
       created: Date.now(),
       updated: Date.now(),
     });
+    const comment = ref();
 
     const filelist = ref([]);
     const fileUpload = ref();
     const forceRender = reactive({
       counter: 1,
+      comments: 1,
     });
 
     const onChange = (e) => {
@@ -282,6 +347,25 @@ export default defineComponent({
       event.currentTarget.classList.remove("bg-green-300");
     };
 
+    const createComment = async () => {
+      const comments = $fire.database.ref(
+        `comments/${cardData.id}/user-${currentUser.value.id}-date-${Date.now()}`
+      );
+      try {
+        await comments.set({
+          id: `user-${currentUser.value.id}-date-${Date.now()}`,
+          user: currentUser.value.id,
+          email: currentUser.value.email,
+          name: currentUser.value.name,
+          message: comment.value,
+          date: Date.now(),
+        });
+      } catch (e) {
+        console.log(e);
+      }
+      comment.value = "";
+    };
+
     const createCard = async () => {
       const tasks = $fire.database.ref(
         `tasks/${sluggify(form.value.title)}${Date.now()}`
@@ -303,12 +387,26 @@ export default defineComponent({
     const deleteCard = async () => {
       const tasks = $fire.database.ref("tasks");
       try {
-       await tasks.child(cardData.id).remove();
+        await tasks.child(cardData.id).remove();
       } catch (e) {
         console.log(e);
       }
       emit("close");
       alert("Task successfully deleted!");
+    };
+
+    const sorter = (a, b) => (a.date < b.date ? 1 : -1);
+    const getComments = (items) => {
+      const unsortedComments = [];
+      items.forEach((child) => {
+        unsortedComments.push({
+          id: child.key,
+          ...child.val(),
+        });
+      });
+      comments.value = unsortedComments.sort(sorter);
+      forceRender.comments = Date.now();
+      console.log(comments.value);
     };
 
     function sluggify(text) {
@@ -317,6 +415,12 @@ export default defineComponent({
         .replace(/ /g, "-")
         .replace(/[^\w-]+/g, "");
     }
+
+    onMounted(() => {
+      currentUser.value = users.find((user) => user.id == fireUser.uid);
+      const fireComments = $fire.database.ref(`comments/${cardData.id}`);
+      fireComments.on("value", getComments);
+    });
 
     return {
       form,
@@ -331,6 +435,9 @@ export default defineComponent({
       fileUpload,
       forceRender,
       dropdownOpen,
+      comment,
+      comments,
+      createComment,
     };
   },
 });

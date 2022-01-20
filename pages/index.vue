@@ -8,6 +8,7 @@ import {
 } from "@nuxtjs/composition-api";
 
 export default defineComponent({
+  middleware: 'auth',
   layout: "default",
   setup() {
     return {

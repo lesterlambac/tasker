@@ -13,6 +13,7 @@
     "sourceMap": true,
     "strict": true,
     "noEmit": true,
+    "resolveJsonModule": true,
     "experimentalDecorators": true,
     "baseUrl": ".",
     "paths": {
@@ -25,8 +26,12 @@
     },
     "types": [
       "@nuxt/types",
-      "@types/node"
-    ]
+      "@nuxtjs/axios",
+      "@types/node",
+      "@nuxtjs/auth-next",
+      "@nuxtjs/moment",
+    ],
+    "typeRoots": ["./node_modules/@types", "./types"]
   },
   "exclude": [
     "node_modules",
