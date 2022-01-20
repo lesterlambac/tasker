@@ -1,7 +1,7 @@
 <template>
   <div @keydown.esc="$emit('close')">
     <ModalCenter @close="$emit('close')">
-      <div class="inline-block relative float-right">
+      <div v-if="cardData.id" class="inline-block relative float-right">
         <button
           @click="dropdownOpen = !dropdownOpen"
           class="relative z-10 inline-block rounded-md p-2 focus:outline-none group"
@@ -181,7 +181,7 @@
           </div>
         </div>
 
-        <div
+        <div v-if="cardData.id"
           class="mt-8 space-y-4 bg-white shadow-lg border border-gray-200 rounded-lg p-6"
         >
           <div
@@ -349,7 +349,9 @@ export default defineComponent({
 
     const createComment = async () => {
       const comments = $fire.database.ref(
-        `comments/${cardData.id}/user-${currentUser.value.id}-date-${Date.now()}`
+        `comments/${cardData.id}/user-${
+          currentUser.value.id
+        }-date-${Date.now()}`
       );
       try {
         await comments.set({
