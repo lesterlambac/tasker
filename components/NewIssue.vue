@@ -1,41 +1,108 @@
 <template>
-  <div>
+  <div   @keydown.esc="$emit('close')">
     <ModalCenter @close="$emit('close')">
-      <form class="space-y-5" @submit.prevent="createTask">
+      
+      <div class="inline-block relative float-right">
+        <button
+          @click="dropdownOpen = !dropdownOpen"
+          class="relative z-10 inline-block rounded-md bg-white p-2 focus:outline-none group"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            class="w-4 icon-dots-vertical"
+          >
+            <path
+              class="secondary fill-current text-gray-500 group-hover:text-gray-900 font-bold"
+              fill-rule="evenodd"
+              d="M12 7a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm0 7a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm0 7a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"
+            ></path>
+          </svg>
+        </button>
+
+        <div
+          v-show="dropdownOpen"
+          @click="dropdownOpen = false"
+          class="fixed inset-0 h-full w-full z-10"
+        ></div>
+
+        <div
+          v-show="dropdownOpen"
+          class="absolute right-0 mt-1 py-2 w-48 bg-white border border-gray-100 rounded-md shadow-xl z-20"
+        >
+          <div
+            class="cursor-pointer block px-4 py-2 text-sm capitalize text-gray-700 hover:bg-gray-200 hover:text-gray-900"
+          >
+            Edit
+          </div>
+          <div
+            class="cursor-pointer block px-4 py-2 text-sm capitalize text-gray-700 hover:bg-gray-200 hover:text-gray-900"
+            @click="deleteCard"
+          >
+            Delete
+          </div>
+        </div>
+      </div>
+
+      <div v-if="cardData.id">
+        <span
+          class="px-2 py-1 leading-tight inline-flex items-center bg-teal-100 rounded-md"
+        >
+          <span class="text-xs font-medium text-teal-800">{{
+            cardData.label
+          }}</span>
+        </span>
+      </div>
+      <form
+        :class="[!cardData.id ? 'space-y-5' : '']"
+        @submit.prevent="createCard"
+      >
         <div class="mt-2">
           <input
             type="text"
+            v-if="!cardData.id"
             v-model="form.title"
             autocomplete="title"
             placeholder="Title"
             required
             class="appearance-none border border-gray-200 block w-full px-3 py-2 rounded-md shadow-sm placeholder-grey-light bg-white text-black focus:outline-none focus:border-gray-200 focus:ring-1 focus:ring-gray-200 focus:bg-white focus:text-black text-sm"
           />
+
+          <h3 v-else class="text-gray-900 font-medium text-xl">
+            {{ cardData.title }}
+          </h3>
         </div>
 
         <div class="mt-2">
           <textarea
+            v-if="!cardData.id"
             v-model="form.description"
             placeholder="Add Description"
             rows="3"
             class="appearance-none border border-gray-200 block w-full px-3 py-2 rounded-md shadow-sm placeholder-grey-light bg-white text-black focus:outline-none focus:border-gray-200 focus:ring-1 focus:ring-gray-200 focus:bg-white focus:text-black text-sm"
           ></textarea>
+
+          <p v-else class="text-gray-700 text-md">{{ cardData.description }}</p>
         </div>
 
         <div class="mt-2">
           <input
             type="date"
+            v-if="!cardData.id"
             v-model="form.date"
             autocomplete="date"
             placeholder="Date"
             required
             class="appearance-none border border-gray-200 block w-full px-3 py-2 rounded-md shadow-sm placeholder-grey-light bg-white text-black focus:outline-none focus:border-gray-200 focus:ring-1 focus:ring-gray-200 focus:bg-white focus:text-black text-sm"
           />
+
+          <p v-else class="text-gray-700 mt-6 text-base ">📅 {{ cardData.date }}</p>
         </div>
 
         <div class="mt-2">
           <input
             type="text"
+            v-if="!cardData.id"
             v-model="form.label"
             autocomplete="label"
             placeholder="Label"
@@ -44,18 +111,7 @@
           />
         </div>
 
-        <!-- <div class="mt-2">
-          <input
-            type="text"
-            v-model="form.status"
-            autocomplete="status"
-            placeholder="Status"
-            required
-            class="appearance-none border border-gray-200 block w-full px-3 py-2 rounded-md shadow-sm placeholder-grey-light bg-white text-black focus:outline-none focus:border-gray-200 focus:ring-1 focus:ring-gray-200 focus:bg-white focus:text-black text-sm"
-          />
-        </div> -->
-
-        <div>
+        <div v-if="!cardData.id">
           <div
             class="p-12 border border-gray-300 border-dashed rounded-lg"
             @dragover="dragover"
@@ -125,6 +181,7 @@
         </div>
 
         <button
+          v-if="!cardData.id"
           type="submit"
           class="w-full max-w-xs text-center block mx-auto pl-2 pr-4 py-2 text-sm font-medium text-white bg-gray-800 rounded-md hover:bg-gray-700"
         >
@@ -154,8 +211,17 @@ import {
 } from "@nuxtjs/composition-api";
 
 export default defineComponent({
-  setup(_, { emit }) {
+  props: {
+    cardData: {
+      type: Object,
+      required: false,
+      default: {},
+    },
+  },
+  setup({ cardData }, { emit }) {
     const { $fire } = useContext();
+
+    const dropdownOpen = ref(false);
 
     const form = ref({
       title: "",
@@ -216,7 +282,7 @@ export default defineComponent({
       event.currentTarget.classList.remove("bg-green-300");
     };
 
-    const createTask = async () => {
+    const createCard = async () => {
       const tasks = $fire.database.ref(
         `tasks/${sluggify(form.value.title)}${Date.now()}`
       );
@@ -234,6 +300,17 @@ export default defineComponent({
       alert("New task successfully created!");
     };
 
+    const deleteCard = async () => {
+      const tasks = $fire.database.ref("tasks");
+      try {
+       await tasks.child(cardData.id).remove();
+      } catch (e) {
+        console.log(e);
+      }
+      emit("close");
+      alert("Task successfully deleted!");
+    };
+
     function sluggify(text) {
       return text
         .toLowerCase()
@@ -243,7 +320,8 @@ export default defineComponent({
 
     return {
       form,
-      createTask,
+      createCard,
+      deleteCard,
       onChange,
       remove,
       dragover,
@@ -252,6 +330,7 @@ export default defineComponent({
       filelist,
       fileUpload,
       forceRender,
+      dropdownOpen,
     };
   },
 });

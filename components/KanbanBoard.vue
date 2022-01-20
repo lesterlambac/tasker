@@ -1,7 +1,7 @@
 <template>
   <div class="flex-1 overflow-auto p-6 card-scene">
     <button
-      @click="showNewIssueModal = true"
+      @click="createCard"
       class="inline-flex items-center ml-3 pl-2 pr-4 py-2 text-sm font-medium text-white bg-gray-800 rounded-md hover:bg-gray-700"
     >
       <svg class="h-6 w-6" fill="none" viewbox="0 0 24 24">
@@ -49,7 +49,7 @@
                 class="space-y-4"
               >
                 <Draggable v-for="card in column.children" :key="card.id">
-                  <div>
+                  <div @click="viewCard(card)">
                     <div class="p-5 bg-white rounded-md shadow cursor-pointer">
                       <div class="flex justify-between">
                         <p
@@ -61,7 +61,7 @@
                           <img
                             alt=""
                             class="h-6 w-6 rounded-full"
-                            src="https://images.unsplash.com/photo-1491528323818-fdd1faba62cc?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=144&h=144&q=80"
+                            src="/favicon.ico"
                           />
                         </span>
                       </div>
@@ -96,7 +96,7 @@
       </Draggable>
     </Container>
 
-    <NewIssue v-if="showNewIssueModal" @close="showNewIssueModal = false" />
+    <NewIssue :cardData="cardData" v-if="showNewIssueModal" @close="showNewIssueModal = false" />
   </div>
 </template>
 
@@ -120,7 +120,9 @@ export default defineComponent({
   setup() {
     const { $fire, $fireModule } = useContext();
     const fireTasks = $fire.database.ref("tasks");
+
     const showNewIssueModal = ref(false);
+    const cardData = ref({});
     const forceRender = ref(1);
 
     const columnNames = ["Pending", "For Review", "Done"];
@@ -185,15 +187,10 @@ export default defineComponent({
     const setNewAddedTask = (item) => {
       scene.value.children[0].children.unshift({
         id: item.key,
-        order: null,
+        order: 0,
         ...item.val(),
       });
     };
-
-    onMounted(async () => {
-      fireTasks.orderByChild("description").once("value", getTasks);
-      fireTasks.orderByChild("description").on("child_added", setNewAddedTask);
-    });
 
     const onCardDrop = (columnId, dropResult) => {
       if (dropResult.removedIndex !== null || dropResult.addedIndex !== null) {
@@ -223,12 +220,25 @@ export default defineComponent({
     };
 
     const onColumnDrop = (dropResult) => {};
-
     const dragStart = () => {};
-
     const log = (...params) => {
       console.log(...params);
     };
+
+    const viewCard = (card) => {
+      cardData.value = card;
+      showNewIssueModal.value = true;
+      console.log(card);
+    }
+
+    const createCard = () => {
+      cardData.value = {};
+      showNewIssueModal.value = true;
+    }
+
+    onMounted(async () => {
+      fireTasks.orderByChild("order").on("value", getTasks);
+    });
 
     return {
       showNewIssueModal,
@@ -242,6 +252,9 @@ export default defineComponent({
       log,
       getCardPayload,
       forceRender,
+      viewCard,
+      createCard,
+      cardData,
       upperDropPlaceholderOptions: {
         className: "cards-drop-preview",
         animationDuration: "150",

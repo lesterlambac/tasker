@@ -20,15 +20,6 @@
         <div
           class="inline-block w-full px-5 py-8 text-left align-bottom transition-all transform bg-white shadow-xl rounded-xl sm:my-8 sm:align-middle sm:max-w-xl sm:p-8"
         >
-          <div>
-            <div class="sm:mt-5">
-              <h2
-                class="mb-6 text-lg font-semibold leading-6 text-center text-black lg:text-2xl"
-              >
-                {{ title }}
-              </h2>
-            </div>
-          </div>
           <slot></slot>
         </div>
       </transition>
