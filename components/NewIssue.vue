@@ -1,5 +1,5 @@
 <template>
-  <div @keydown.esc="$emit('close')">
+  <div>
     <ModalCenter @close="$emit('close')">
       <div v-if="cardData.id" class="inline-block relative float-right">
         <button
@@ -43,7 +43,10 @@
         </div>
       </div>
 
-      <div v-if="cardData.id">
+      <div
+        v-if="cardData.id"
+        class="inline-flex items-center justify-start space-x-2 border-b border-gray-200 pb-4"
+      >
         <span
           class="px-2 py-1 leading-tight inline-flex items-center bg-teal-100 rounded-md"
         >
@@ -51,6 +54,10 @@
             cardData.label
           }}</span>
         </span>
+
+        <p class="text-gray-700 text-base">
+          🎯 {{ $moment(cardData.date).format("MMMM DD") }}
+        </p>
       </div>
       <form
         :class="[!cardData.id ? 'space-y-5' : '']"
@@ -67,7 +74,7 @@
             class="appearance-none border border-gray-200 block w-full px-3 py-2 rounded-md shadow-sm placeholder-grey-light bg-white text-black focus:outline-none focus:border-gray-200 focus:ring-1 focus:ring-gray-200 focus:bg-white focus:text-black text-sm"
           />
 
-          <h3 v-else class="text-gray-900 font-medium text-xl">
+          <h3 v-else class="text-gray-900 font-medium text-2xl my-2">
             {{ cardData.title }}
           </h3>
         </div>
@@ -94,10 +101,6 @@
             required
             class="appearance-none border border-gray-200 block w-full px-3 py-2 rounded-md shadow-sm placeholder-grey-light bg-white text-black focus:outline-none focus:border-gray-200 focus:ring-1 focus:ring-gray-200 focus:bg-white focus:text-black text-sm"
           />
-
-          <p v-else class="text-gray-700 mt-6 text-base">
-            📅 {{ cardData.date }}
-          </p>
         </div>
 
         <div class="mt-2">
@@ -181,13 +184,22 @@
           </div>
         </div>
 
-        <div v-if="cardData.id"
+        <div
+          v-if="cardData.id"
           class="mt-8 space-y-4 bg-white shadow-lg border border-gray-200 rounded-lg p-6"
         >
           <div
             class="flex items-start justify-center space-x-4 pb-4 border-b border-gray-200"
           >
+            <img
+              v-if="currentUser.photo"
+              :src="currentUser.photo"
+              class="flex-none h-8 w-8 rounded-full shadow-sm border-gray-200 fill-current text-gray-500 shadow-sm object-contain"
+              alt="Photo"
+            />
+
             <svg
+              v-else
               class="flex-none h-8 w-8 rounded-full shadow-sm border-gray-200 fill-current text-gray-500 shadow-sm"
               viewBox="0 0 24 24"
             >
@@ -210,7 +222,16 @@
             v-for="comment in comments"
             :key="comment.id + forceRender.comments"
           >
+            <div v-if="getUserPhoto(comment.user)">
+              <img
+                :src="getUserPhoto(comment.user)"
+                class="flex-none h-8 w-8 rounded-full shadow-sm border-gray-200 fill-current text-gray-500 shadow-sm object-contain"
+                alt="Photo"
+              />
+            </div>
+
             <svg
+              v-else
               class="flex-none h-8 w-8 rounded-full shadow-sm border-gray-200 fill-current text-gray-500 shadow-sm"
               viewBox="0 0 24 24"
             >
@@ -224,13 +245,70 @@
                 <h4 class="text-gray-900 font-medium text-sm flex-1 text-left">
                   {{ comment.name }}
                 </h4>
-                <span class="text-gray-500 text-sm flex-none">{{
-                  comment.date
+                <span class="text-gray-500 text-xs flex-none">{{
+                  $moment(comment.date).fromNow()
                 }}</span>
               </div>
               <p class="text-gray-700 text-sm">
                 {{ comment.message }}
               </p>
+            </div>
+          </div>
+        </div>
+
+        <div
+          v-if="cardData.id"
+          class="mt-8 space-y-4 bg-white shadow-lg border border-gray-200 rounded-lg p-6 relative"
+        >
+          <div
+            class="flex items-start justify-start space-x-4 pb-4 border-b border-gray-200"
+          >
+            <h3 class="text-lg font-medium text-gray-900">Activities</h3>
+          </div>
+
+          <div class="relative">
+            <div
+              class="flex items-start justify-center space-x-4 pb-6 relative"
+              v-for="(activity, index) in activities"
+              :key="activity.id"
+            >
+              <div class="flex-none flex items-center justify-center flex-col">
+                <img
+                  v-if="getUserPhoto(activity.user)"
+                  :src="getUserPhoto(activity.user)"
+                  class="flex-none h-8 w-8 rounded-full shadow-sm border-gray-200 fill-current text-gray-500 shadow-sm object-contain relative z-10"
+                  alt="Photo"
+                />
+                <svg
+                  v-else
+                  class="flex-none h-8 w-8 rounded-full shadow-sm border-gray-200 fill-current text-gray-500 shadow-sm relative z-10 bg-white"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z"
+                  ></path>
+                </svg>
+                <div
+                  v-if="index !== activities.length - 1"
+                  class="absolute top-0 bottom-0 h-full w-[1px] bg-gray-200 flex-1 z-0"
+                ></div>
+              </div>
+
+              <div class="w-full flex-1 rounded-lg px-4 space-y-1">
+                <div class="flex items-center justify-center">
+                  <h4
+                    class="text-gray-700 font-medium text-sm flex-1 text-left"
+                  >
+                    {{ getUserName(activity.user) }}
+                  </h4>
+                </div>
+                <p class="text-gray-500 text-sm">
+                  {{ activity.data }}
+                </p>
+                <span class="text-gray-500 text-xs">{{
+                  $moment(activity.date).fromNow()
+                }}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -263,6 +341,7 @@ import {
   reactive,
   useContext,
   onMounted,
+  onBeforeMount,
 } from "@nuxtjs/composition-api";
 
 export default defineComponent({
@@ -281,8 +360,9 @@ export default defineComponent({
   setup({ cardData, users }, { emit }) {
     const { $fire } = useContext();
     const fireUser = $fire.auth.currentUser;
-    const currentUser = ref();
-    const comments = ref();
+    const currentUser = ref({});
+    const comments = ref([]);
+    const activities = ref([]);
 
     const dropdownOpen = ref(false);
 
@@ -303,6 +383,7 @@ export default defineComponent({
     const forceRender = reactive({
       counter: 1,
       comments: 1,
+      activities: 1,
     });
 
     const onChange = (e) => {
@@ -408,7 +489,26 @@ export default defineComponent({
       });
       comments.value = unsortedComments.sort(sorter);
       forceRender.comments = Date.now();
-      console.log(comments.value);
+    };
+
+    const getActivities = (items) => {
+      const unsortedActivities = [];
+      items.forEach((child) => {
+        unsortedActivities.push({
+          id: child.key,
+          ...child.val(),
+        });
+      });
+      activities.value = unsortedActivities.sort(sorter);
+      forceRender.activities = Date.now();
+    };
+
+    const getUserPhoto = (userId) => {
+      return users.find((user) => user.id == userId).photo;
+    };
+
+    const getUserName = (userId) => {
+      return users.find((user) => user.id == userId).name;
     };
 
     function sluggify(text) {
@@ -418,10 +518,14 @@ export default defineComponent({
         .replace(/[^\w-]+/g, "");
     }
 
-    onMounted(() => {
+    onBeforeMount(() => {
       currentUser.value = users.find((user) => user.id == fireUser.uid);
+
       const fireComments = $fire.database.ref(`comments/${cardData.id}`);
       fireComments.on("value", getComments);
+
+      const fireActivities = $fire.database.ref(`activities/${cardData.id}`);
+      fireActivities.on("value", getActivities);
     });
 
     return {
@@ -439,7 +543,11 @@ export default defineComponent({
       dropdownOpen,
       comment,
       comments,
+      activities,
       createComment,
+      getUserPhoto,
+      getUserName,
+      currentUser,
     };
   },
 });
@@ -455,5 +563,15 @@ export default defineComponent({
 .pop-leave-to {
   opacity: 0;
   transform: scale(0.3) translateY(-50%);
+}
+
+.list-group-activities .list-group-item:not(:last-child):before {
+  border-left: 1px solid #e3ebf6;
+  content: "";
+  height: 100%;
+  left: 1.25rem;
+  position: absolute;
+  top: 1rem;
+  z-index: 1;
 }
 </style>

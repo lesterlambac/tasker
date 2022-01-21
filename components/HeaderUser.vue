@@ -35,8 +35,8 @@
           class="mt-12 mr-6 top-0 right-0 z-40 absolute w-52 rounded shadow-lg bg-white focus:outline-none p-4 border border-gray-100"
         >
         <div class="flex flex-col items-start justify-start border-b border-gray-100 pb-3">
-          <span class="text-base font-medium text-gray-900">Lester Moore</span>
-          <span class="text-sm text-gray-500">Front-End Developer</span>
+          <span class="text-base font-medium text-gray-900">{{ currentUser.name }}</span>
+          <span class="text-sm text-gray-500">{{ currentUser.position }}</span>
         </div>
           <a
             @click="signOut"
@@ -51,25 +51,53 @@
 
 
 <script>
-import { defineComponent, ref, useContext } from "@nuxtjs/composition-api";
+import {
+  defineComponent,
+  ref,
+  useContext,
+  onMounted,
+} from "@nuxtjs/composition-api";
 import Cookies from "universal-cookie";
 
 export default defineComponent({
   setup() {
+    const { $fire, redirect } = useContext();
     const cookies = new Cookies();
     const open = ref(false);
-    const { $fire, redirect } = useContext();
+    const fireUser = $fire.auth.currentUser;
+    const currentUser = ref({});
+    const users = ref([]);
+    const fireUsers = $fire.database.ref("users");
 
     const signOut = () => {
-      cookies.remove('email');
-      cookies.remove('password');
+      cookies.remove("email");
+      cookies.remove("password");
       $fire.auth.signOut();
-      redirect("/login")
+      redirect("/login");
+    };
+
+    const getUsers = (items) => {
+      const unsortedUsers = [];
+      items.forEach((child) => {
+        unsortedUsers.push({
+          id: child.key,
+          ...child.val(),
+        });
+      });
+      users.value = unsortedUsers;
+      currentUser.value = users.value.find((user) => user.id == $fire.auth.currentUser.uid);
+    };
+
+    const initializeCurrentUser = () => {
+      fireUsers.on("value", getUsers);
     }
+
+    initializeCurrentUser();
 
     return {
       open,
       signOut,
+      currentUser,
     };
   },
 });

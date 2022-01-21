@@ -1,7 +1,5 @@
 import Cookies from "universal-cookie";
-import { Middleware } from "@nuxt/types";
-import { getAuth, signOut, signInWithEmailAndPassword } from "firebase/auth";
-import vueCompositionApi from "@vue/composition-api";
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 
 const auth = async ({ redirect, ssrContext, $fire }) => {
   try {
@@ -12,28 +10,20 @@ const auth = async ({ redirect, ssrContext, $fire }) => {
     const email = cookies.get("email");
     const password = cookies.get("password");
 
-    console.log(email);
-    console.log(password);
-
     if (!email || !password) {
       return redirect("/login");
     }
 
-    const auth = getAuth();
-    const user = await signInWithEmailAndPassword(auth, email, password);
-    console.log(user)
-    if (user.currentUser == email) {
-      return redirect("/");
+    const user = await $fire.auth.signInWithEmailAndPassword(email, password);
+
+    if (user.user.email !== email) {
+      return redirect("/login");
     }
-
-
 
   } catch (e) {
     console.log(e)
     return redirect("/login");
   }
-
-
 
 };
 

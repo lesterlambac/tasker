@@ -1,19 +1,21 @@
 <template>
   <div class="flex-1 overflow-auto p-6 card-scene">
-    <button
-      @click="createCard"
-      class="inline-flex items-center ml-3 pl-2 pr-4 py-2 text-sm font-medium text-white bg-gray-800 rounded-md hover:bg-gray-700"
-    >
-      <svg class="h-6 w-6" fill="none" viewbox="0 0 24 24">
-        <path
-          d="M12 7v10m5-5H7"
-          stroke-linecap="round"
-          stroke-width="2"
-          stroke="currentColor"
-        />
-      </svg>
-      <span class="ml-1">New Issue</span>
-    </button>
+    <div class="mb-2">
+      <button
+        @click="createCard"
+        class="inline-flex items-center ml-3 pl-2 pr-4 py-2 text-sm font-medium text-white bg-gray-800 rounded-md hover:bg-gray-700"
+      >
+        <svg class="h-6 w-6" fill="none" viewbox="0 0 24 24">
+          <path
+            d="M12 7v10m5-5H7"
+            stroke-linecap="round"
+            stroke-width="2"
+            stroke="currentColor"
+          />
+        </svg>
+        <span class="ml-1">New Issue</span>
+      </button>
+    </div>
 
     <Container
       orientation="horizontal"
@@ -41,7 +43,7 @@
                 group-name="col"
                 @drop="(e) => onCardDrop(column.id, e)"
                 @drag-start="(e) => log('drag start', e)"
-                @drag-end="(e) => log('drag end', e)"
+                @drag-end="(e) => onDragEnd(column.name, e)"
                 :get-child-payload="getCardPayload(column.id)"
                 drag-class="card-ghost"
                 drop-class="card-ghost-drop"
@@ -51,23 +53,25 @@
                 <Draggable v-for="card in column.children" :key="card.id">
                   <div @click="viewCard(card)">
                     <div class="p-5 bg-white rounded-md shadow cursor-pointer">
-                      <div class="flex justify-between">
+                      <div class="">
+                        <div class="float-right pl-6">
+                          <img
+                            alt=""
+                            class="h-6 w-6 rounded-full shadow border"
+                            src="/favicon.ico"
+                          />
+                        </div>
                         <p
                           class="text-sm font-medium leading-snug text-gray-900"
                         >
                           {{ card.description }}
                         </p>
-                        <span>
-                          <img
-                            alt=""
-                            class="h-6 w-6 rounded-full"
-                            src="/favicon.ico"
-                          />
-                        </span>
                       </div>
-                      <div class="mt-2 flex justify-between items-baseline">
+                      <div class="mt-4 flex justify-between items-baseline">
                         <div class="text-sm text-gray-600">
-                          <time datetime="2019-09-14">{{ card.date }} </time>
+                          <time datetime="2019-09-14">{{
+                            $moment(card.date).format("DD MMM YYYY")
+                          }}</time>
                         </div>
                         <div>
                           <span
@@ -80,7 +84,8 @@
                             >
                               <circle cx="4" cy="4" r="3" />
                             </svg>
-                            <span class="ml-1 text-xs font-medium text-teal-900"
+                            <span
+                              class="ml-1 text-xs font-medium text-teal-900"
                               >{{ card.label }}</span
                             >
                           </span>
@@ -96,7 +101,12 @@
       </Draggable>
     </Container>
 
-    <NewIssue :cardData="cardData" :users="users" v-if="showNewIssueModal" @close="showNewIssueModal = false" />
+    <NewIssue
+      :cardData="cardData"
+      :users="users"
+      v-if="showNewIssueModal"
+      @close="showNewIssueModal = false"
+    />
   </div>
 </template>
 
@@ -108,6 +118,7 @@ import {
   defineComponent,
   nextTick,
   ref,
+  reactive,
   useContext,
   useFetch,
   computed,
@@ -121,6 +132,12 @@ export default defineComponent({
     const { $fire, $fireModule } = useContext();
     const fireTasks = $fire.database.ref("tasks");
     const fireUsers = $fire.database.ref("users");
+    const fireActivities = $fire.database.ref("activities");
+
+    const cardTracker = reactive({
+      dropCounter: 1,
+      sourceColumn: "",
+    });
 
     const showNewIssueModal = ref(false);
     const cardData = ref({});
@@ -150,6 +167,7 @@ export default defineComponent({
     const users = ref([]);
     const tasks = ref([]);
     const sorter = (a, b) => (a.order > b.order ? 1 : -1);
+
     const getTasks = async (items) => {
       const usortedItems = [];
 
@@ -195,7 +213,6 @@ export default defineComponent({
         });
       });
       users.value = unsortedUsers.sort(sorter);
-      console.log(users.value)
     };
 
     const setNewAddedTask = (item) => {
@@ -213,16 +230,40 @@ export default defineComponent({
         const columnIndex = sceneCopy.children.indexOf(column);
         const newColumn = Object.assign({}, column);
         newColumn.children = applyDrag(newColumn.children, dropResult);
-        sceneCopy.children.splice(columnIndex, 1, newColumn);
         scene.value = sceneCopy;
 
-        newColumn.children.map((child, index) => {
-          fireTasks.child(child.id).update({
+        newColumn.children.map(async (child, index) => {
+          await fireTasks.child(child.id).update({
             order: index,
             updated: Date.now(),
             status: columnNames[columnIndex],
           });
+          forceRender.value = Date.now();
         });
+
+        // statusChange Activity - cleanup later
+        if (cardTracker.dropCounter == 2) {
+          const res = tasks.value.find(
+            (task) => dropResult.payload.id == task.id
+          );
+
+          if (res.status !== cardTracker.sourceColumn) {
+            createActivity(
+              res.id,
+              "statusChange",
+              `Moved status to "${res.status}"`
+            );
+          }
+          cardTracker.dropCounter = 0;
+        }
+
+        cardTracker.dropCounter += 1;
+      }
+    };
+
+    const onDragEnd = (columnName, e) => {
+      if (e.isSource) {
+        cardTracker.sourceColumn = columnName;
       }
     };
 
@@ -233,7 +274,7 @@ export default defineComponent({
       };
     };
 
-    const onColumnDrop = (dropResult) => {};
+    const onColumnDrop = () => {};
     const dragStart = () => {};
     const log = (...params) => {
       console.log(...params);
@@ -243,16 +284,36 @@ export default defineComponent({
       cardData.value = card;
       showNewIssueModal.value = true;
       console.log(card);
-    }
+    };
 
     const createCard = () => {
       cardData.value = {};
       showNewIssueModal.value = true;
-    }
+    };
+
+    const createActivity = async (taskId, activityType, data) => {
+      const fireActivity = $fire.database.ref(
+        `activities/${taskId}/user-${
+          $fire.auth.currentUser.uid
+        }-date-${Date.now()}`
+      );
+      try {
+        await fireActivity.set({
+          id: `user-${$fire.auth.currentUser.uid}-date-${Date.now()}`,
+          type: activityType,
+          data: data,
+          user: $fire.auth.currentUser.uid,
+          date: Date.now(),
+        });
+      } catch (e) {
+        console.log(e);
+      }
+      console.log("New activity as been added.");
+    };
 
     onMounted(async () => {
       fireTasks.orderByChild("order").on("value", getTasks);
-      fireUsers.on("value", getUsers);
+      fireUsers.orderByChild("order").on("value", getUsers);
     });
 
     return {
@@ -271,6 +332,7 @@ export default defineComponent({
       createCard,
       cardData,
       users,
+      onDragEnd,
       upperDropPlaceholderOptions: {
         className: "cards-drop-preview",
         animationDuration: "150",
