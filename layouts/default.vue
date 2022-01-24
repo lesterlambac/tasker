@@ -11,3 +11,10 @@ export default defineComponent({
   middleware : []
 })
 </script>
+<style>
+
+.toasted-container.top-right-custom {
+    top: 5%;
+    right: 3%;
+}
+</style>

@@ -106,6 +106,7 @@
       :users="users"
       v-if="showNewIssueModal"
       @close="showNewIssueModal = false"
+      @created="$toast.success('Added new issue.').goAway(1500)"
     />
   </div>
 </template>
@@ -129,7 +130,7 @@ import { applyDrag, generateItems } from "../utils/helpers.js";
 export default defineComponent({
   components: { Container, Draggable },
   setup() {
-    const { $fire, $fireModule } = useContext();
+    const { $fire, $fireModule, context, $toast } = useContext();
     const fireTasks = $fire.database.ref("tasks");
     const fireUsers = $fire.database.ref("users");
     const fireActivities = $fire.database.ref("activities");

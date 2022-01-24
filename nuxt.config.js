@@ -21,7 +21,7 @@ export default {
 
   // Global CSS: https://go.nuxtjs.dev/config-css
   css: [
-      // CSS file in the project
+    // CSS file in the project
   ],
 
   // Plugins to run before rendering page: https://go.nuxtjs.dev/config-plugins
@@ -61,8 +61,22 @@ export default {
           storage: true,
         }
       }
-    ]
+    ],
+    '@nuxtjs/toast',
   ],
+
+  toast: {
+    position: 'top-right-custom',
+    register: [ // Register custom toasts
+      {
+        name: 'my-error',
+        message: 'Oops...Something went wrong',
+        options: {
+          type: 'error'
+        }
+      }
+    ]
+  },
 
   auth: {
     persistence: 'local', // default

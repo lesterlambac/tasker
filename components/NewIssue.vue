@@ -220,7 +220,7 @@
             </button>
           </div>
 
-          <div class="relative py-4 px-6">
+          <div class="relative py-4 px-6" v-if="fireAttachedFiles.length">
             <div v-if="loading.files" class="text-center py-6">
               <LoadingSpinner
                 class="mr-2"
@@ -282,43 +282,46 @@
             ></textarea>
           </div>
 
-          <div
-            class="flex items-start justify-center space-x-4"
-            v-for="comment in comments"
-            :key="comment.id + forceRender.comments"
-          >
-            <div v-if="getUserPhoto(comment.user)">
-              <img
-                :src="getUserPhoto(comment.user)"
-                class="flex-none h-10 w-10 rounded-full shadow-sm border-grey-line fill-current text-gray-500 shadow-sm object-contain"
-                alt="Photo"
-              />
-            </div>
-
-            <svg
-              v-else
-              class="flex-none h-10 w-10 rounded-full shadow-sm border-grey-line fill-current text-gray-500 shadow-sm"
-              viewBox="0 0 24 24"
+          <template v-if="comments.length">
+            <div
+              class="flex items-start justify-center space-x-4"
+              v-for="comment in comments"
+              :key="comment.id + forceRender.comments"
             >
-              <path
-                d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z"
-              ></path>
-            </svg>
-
-            <div class="w-full flex-1 bg-grey-light rounded-lg p-4">
-              <div class="flex items-center justify-center mb-2">
-                <h4 class="text-gray-900 font-medium text-sm flex-1 text-left">
-                  {{ comment.name }}
-                </h4>
-                <span class="text-gray-500 text-xs flex-none">{{
-                  $moment(comment.date).fromNow()
-                }}</span>
+              <div v-if="getUserPhoto(comment.user)">
+                <img
+                  :src="getUserPhoto(comment.user)"
+                  class="flex-none h-10 w-10 rounded-full shadow-sm border-grey-line fill-current text-gray-500 shadow-sm object-contain"
+                  alt="Photo"
+                />
               </div>
-              <p class="text-gray-700 text-sm">
-                {{ comment.message }}
-              </p>
+
+              <svg
+                v-else
+                class="flex-none h-10 w-10 rounded-full shadow-sm border-grey-line fill-current text-gray-500 shadow-sm"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z"
+                ></path>
+              </svg>
+
+              <div class="w-full flex-1 bg-grey-light rounded-lg p-4">
+                <div class="flex items-center justify-center mb-2">
+                  <h4 class="text-gray-900 font-medium text-sm flex-1 text-left">
+                    {{ comment.name }}
+                  </h4>
+                  <span class="text-gray-500 text-xs flex-none">{{
+                    $moment(comment.date).fromNow()
+                  }}</span>
+                </div>
+                <p class="text-gray-700 text-sm">
+                  {{ comment.message }}
+                </p>
+              </div>
             </div>
-          </div>
+          </template>
+
         </div>
 
         <div
@@ -328,10 +331,10 @@
           <div
             class="flex items-start justify-start space-x-4 py-4 px-6 border-b border-grey-line"
           >
-            <h3 class="text-base font-medium text-gray-900">Activity</h3>
+            <h3 class="text-base font-medium text-gray-900">Activities</h3>
           </div>
 
-          <div class="relative py-4 px-6">
+          <div class="relative py-4 px-6" v-if="activities.length">
             <div
               class="flex items-start justify-center space-x-4 pb-6 relative"
               v-for="(activity, index) in activities"
@@ -433,7 +436,7 @@ export default defineComponent({
     },
   },
   setup({ cardData, users }, { emit }) {
-    const { $fire } = useContext();
+    const { $fire, $toast } = useContext();
     const fireUser = $fire.auth.currentUser;
     const currentUser = ref({});
     const comments = ref([]);
@@ -474,7 +477,7 @@ export default defineComponent({
     const loading = reactive({
       files: false,
       uploading: false,
-      creating: false,
+      creatingTask: false,
     });
     const showUploadOption = ref(true);
 
@@ -542,7 +545,7 @@ export default defineComponent({
     };
 
     const createCard = async () => {
-      loading.creating = true;
+      loading.creatingTask = true;
       try {
         const title = `${sluggify(form.value.title)}${Date.now()}`
         const tasks = $fire.database.ref(`tasks/${title}`);
@@ -561,9 +564,9 @@ export default defineComponent({
         console.log(e);
       }
 
-      emit("close");
-      alert("New task successfully created!");
-      loading.creating = false;
+      loading.creatingTask = false;
+      emit('close');
+      emit('created');
     };
 
     const deleteCard = async () => {
@@ -573,8 +576,8 @@ export default defineComponent({
       } catch (e) {
         console.log(e);
       }
+      $toast.success('Deleted.').goAway(1500);
       emit("close");
-      alert("Task successfully deleted!");
     };
 
     const sorter = (a, b) => (a.date < b.date ? 1 : -1);
