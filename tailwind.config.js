@@ -21,8 +21,9 @@ module.exports = {
 
         grey: {
           DEFAULT: "#808191",
-          light: "#b5bac3",
+          light: "#f9fbfd",
           stroke: "#F0F0F7",
+          line: "#edf2f9;",
         },
 
         secondary: "#CBEE47",
@@ -44,6 +45,9 @@ module.exports = {
         form: {
           dropdown: "#EDE0D4"
         }
+      },
+      boxShadow: {
+        'card': '0 0.75rem 1.5rem rgb(18 38 63 / 3%)',
       },
       fontFamily: {
         sans: ["Inter", ...defaultTheme.fontFamily["sans"]],

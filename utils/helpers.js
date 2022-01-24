@@ -23,3 +23,7 @@ export const generateItems = (count, creator) => {
   }
   return result
 }
+
+export const isFileImage = (file) => {
+  return file && file['contentType'].split('/')[0] === 'image';
+}

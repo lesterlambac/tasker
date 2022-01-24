@@ -18,7 +18,7 @@
       >
       <transition name="pop" appear>
         <div
-          class="inline-block w-full px-5 py-8 text-left align-bottom transition-all transform bg-gray-50 shadow-xl rounded-xl sm:my-8 sm:align-middle sm:max-w-xl sm:p-8"
+          class="inline-block w-full p-6 text-left align-bottom transition-all transform bg-grey-light shadow-xl rounded-xl sm:align-middle sm:max-w-[600px]"
         >
           <slot></slot>
         </div>

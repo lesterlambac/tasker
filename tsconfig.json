@@ -30,6 +30,7 @@
       "@types/node",
       "@nuxtjs/auth-next",
       "@nuxtjs/moment",
+      "@nuxtjs/firebase",
     ],
     "typeRoots": ["./node_modules/@types", "./types"]
   },

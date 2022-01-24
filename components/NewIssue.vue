@@ -30,12 +30,12 @@
           class="absolute right-0 mt-1 py-2 w-48 bg-white border border-gray-100 rounded-md shadow-xl z-20"
         >
           <!-- <div
-            class="cursor-pointer block px-4 py-2 text-sm capitalize text-gray-700 hover:bg-gray-200 hover:text-gray-900"
+            class="cursor-pointer block px-4 py-2 text-sm capitalize text-gray-700 hover:bg-grey-line hover:text-gray-900"
           >
             Edit
           </div> -->
           <div
-            class="cursor-pointer block px-4 py-2 text-sm capitalize text-gray-700 hover:bg-gray-200 hover:text-gray-900"
+            class="cursor-pointer block px-4 py-2 text-sm capitalize text-gray-700 hover:bg-grey-line hover:text-gray-900"
             @click="deleteCard"
           >
             Delete
@@ -45,7 +45,7 @@
 
       <div
         v-if="cardData.id"
-        class="inline-flex items-center justify-start space-x-2 border-b border-gray-200 pb-4"
+        class="inline-flex items-center justify-start space-x-2 border-b border-grey-line pb-4"
       >
         <span
           class="px-2 py-1 leading-tight inline-flex items-center bg-teal-100 rounded-md"
@@ -71,7 +71,7 @@
             autocomplete="title"
             placeholder="Title"
             required
-            class="appearance-none border border-gray-200 block w-full px-3 py-2 rounded-md shadow-sm placeholder-grey-light bg-white text-black focus:outline-none focus:border-gray-200 focus:ring-1 focus:ring-gray-200 focus:bg-white focus:text-black text-sm"
+            class="appearance-none border border-grey-line block w-full px-3 py-2 rounded-md shadow-sm placeholder-grey-light bg-white text-black focus:outline-none focus:border-grey-line focus:ring-1 focus:ring-grey-line focus:bg-white focus:text-black text-sm"
           />
 
           <h3 v-else class="text-gray-900 font-medium text-2xl my-2">
@@ -85,7 +85,7 @@
             v-model="form.description"
             placeholder="Add Description"
             rows="3"
-            class="appearance-none border border-gray-200 block w-full px-3 py-2 rounded-md shadow-sm placeholder-grey-light bg-white text-black focus:outline-none focus:border-gray-200 focus:ring-1 focus:ring-gray-200 focus:bg-white focus:text-black text-sm"
+            class="appearance-none border border-grey-line block w-full px-3 py-2 rounded-md shadow-sm placeholder-grey-light bg-white text-black focus:outline-none focus:border-grey-line focus:ring-1 focus:ring-grey-line focus:bg-white focus:text-black text-sm"
           ></textarea>
 
           <p v-else class="text-gray-700 text-md">{{ cardData.description }}</p>
@@ -99,7 +99,7 @@
             autocomplete="date"
             placeholder="Date"
             required
-            class="appearance-none border border-gray-200 block w-full px-3 py-2 rounded-md shadow-sm placeholder-grey-light bg-white text-black focus:outline-none focus:border-gray-200 focus:ring-1 focus:ring-gray-200 focus:bg-white focus:text-black text-sm"
+            class="appearance-none border border-grey-line block w-full px-3 py-2 rounded-md shadow-sm placeholder-grey-light bg-white text-black focus:outline-none focus:border-grey-line focus:ring-1 focus:ring-grey-line focus:bg-white focus:text-black text-sm"
           />
         </div>
 
@@ -111,11 +111,11 @@
             autocomplete="label"
             placeholder="Label"
             required
-            class="appearance-none border border-gray-200 block w-full px-3 py-2 rounded-md shadow-sm placeholder-grey-light bg-white text-black focus:outline-none focus:border-gray-200 focus:ring-1 focus:ring-gray-200 focus:bg-white focus:text-black text-sm"
+            class="appearance-none border border-grey-line block w-full px-3 py-2 rounded-md shadow-sm placeholder-grey-light bg-white text-black focus:outline-none focus:border-grey-line focus:ring-1 focus:ring-grey-line focus:bg-white focus:text-black text-sm"
           />
         </div>
 
-        <div v-if="!cardData.id">
+        <div v-if="showUploadOption">
           <div
             class="p-12 border border-gray-300 border-dashed rounded-lg"
             @dragover="dragover"
@@ -182,25 +182,105 @@
               </button>
             </div>
           </div>
+
+          <!-- Test button -->
+          <button
+            type="button"
+            @click="runUploadTest"
+            class="mt-4 w-full max-w-xs text-center block mx-auto pl-2 pr-4 py-2 text-sm font-medium text-white bg-gray-800 rounded-md hover:bg-gray-700"
+          >
+            <!-- <svg class="h-6 w-6" fill="none" viewbox="0 0 24 24">
+              <path
+                d="M12 7v10m5-5H7"
+                stroke-linecap="round"
+                stroke-width="2"
+                stroke="currentColor"
+              />
+            </svg> -->
+            <span class="ml-1">Upload Now</span>
+          </button>
         </div>
 
         <div
           v-if="cardData.id"
-          class="mt-8 space-y-4 bg-white shadow-lg border border-gray-200 rounded-lg p-6"
+          class="mt-8 space-y-4 bg-white shadow-card border border-grey-line rounded-lg relative"
         >
           <div
-            class="flex items-start justify-center space-x-4 pb-4 border-b border-gray-200"
+            class="flex items-center justify-between space-x-4 py-4 px-6 border-b border-grey-line"
+          >
+            <h3 class="text-base font-medium text-gray-900">Files</h3>
+            <button
+              @click="showUploadOption = true"
+              type="button"
+              class="py-2 px-3 text-xs font-medium hover:bg-gray-200 border border-gray-200 rounded"
+            >
+              Show Upload Option
+            </button>
+          </div>
+
+          <div class="relative py-4 px-6">
+            <div
+              class="flex space-x-4 pb-6 relative"
+              v-for="file in attachedFiles"
+              :key="file.metaData.fileName"
+            >
+              <img
+                v-if="isFileImage(file.metaData)"
+                class="w-12 h-12 object-fit"
+                :src="file.downloadURL"
+                alt=""
+                :key="forceRender.counter"
+              />
+
+              <svg
+                v-else
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                class="flex-none h-10 w-10 shadow-sm border-grey-line fill-current text-gray-500 shadow-sm"
+              >
+                <path
+                  class="primary"
+                  d="M6 2h6v6c0 1.1.9 2 2 2h6v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4c0-1.1.9-2 2-2z"
+                ></path>
+                <polygon class="secondary" points="14 2 20 8 14 8"></polygon>
+              </svg>
+
+              <div class="flex flex-col flex-1">
+                <span class="text-gray-900 font-medium mb-1">{{
+                  file.metaData.name
+                }}</span>
+                <span class="text-gray-500">{{ file.metaData.size }} bytes</span>
+
+                <!-- <button
+                class="ml-2"
+                type="button"
+                @click="remove(filelist.indexOf(file))"
+                title="Remove file"
+              >
+                remove
+              </button> -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div
+          v-if="cardData.id"
+          class="mt-8 space-y-4 bg-white shadow-card border border-grey-line rounded-lg p-6"
+        >
+          <div
+            class="flex items-start justify-center space-x-4 pb-2 border-b border-grey-line"
           >
             <img
               v-if="currentUser.photo"
               :src="currentUser.photo"
-              class="flex-none h-8 w-8 rounded-full shadow-sm border-gray-200 fill-current text-gray-500 shadow-sm object-contain"
+              class="flex-none h-10 w-10 rounded-full shadow-sm border-grey-line fill-current text-gray-500 shadow-sm object-contain"
               alt="Photo"
             />
 
             <svg
               v-else
-              class="flex-none h-8 w-8 rounded-full shadow-sm border-gray-200 fill-current text-gray-500 shadow-sm"
+              class="flex-none h-10 w-10 rounded-full shadow-sm border-grey-line fill-current text-gray-500 shadow-sm"
               viewBox="0 0 24 24"
             >
               <path
@@ -213,7 +293,7 @@
               @keydown.enter.exact="createComment"
               placeholder="Leave a comment"
               rows="2"
-              class="appearance-none border-none block w-full px-3 py-2 rounded-md placeholder-grey-light bg-white text-black focus:outline-none focus:border-gray-200 focus:ring-1 focus:ring-gray-200 focus:bg-white focus:text-black text-sm"
+              class="appearance-none border-none block w-full px-3 py-2 rounded-md placeholder-grey-light bg-white text-black focus:outline-none focus:border-grey-line focus:ring-1 focus:ring-grey-line focus:bg-white focus:text-black text-sm"
             ></textarea>
           </div>
 
@@ -225,14 +305,14 @@
             <div v-if="getUserPhoto(comment.user)">
               <img
                 :src="getUserPhoto(comment.user)"
-                class="flex-none h-8 w-8 rounded-full shadow-sm border-gray-200 fill-current text-gray-500 shadow-sm object-contain"
+                class="flex-none h-10 w-10 rounded-full shadow-sm border-grey-line fill-current text-gray-500 shadow-sm object-contain"
                 alt="Photo"
               />
             </div>
 
             <svg
               v-else
-              class="flex-none h-8 w-8 rounded-full shadow-sm border-gray-200 fill-current text-gray-500 shadow-sm"
+              class="flex-none h-10 w-10 rounded-full shadow-sm border-grey-line fill-current text-gray-500 shadow-sm"
               viewBox="0 0 24 24"
             >
               <path
@@ -240,7 +320,7 @@
               ></path>
             </svg>
 
-            <div class="w-full flex-1 bg-gray-50 rounded-lg p-4">
+            <div class="w-full flex-1 bg-grey-light rounded-lg p-4">
               <div class="flex items-center justify-center mb-2">
                 <h4 class="text-gray-900 font-medium text-sm flex-1 text-left">
                   {{ comment.name }}
@@ -258,15 +338,15 @@
 
         <div
           v-if="cardData.id"
-          class="mt-8 space-y-4 bg-white shadow-lg border border-gray-200 rounded-lg p-6 relative"
+          class="mt-8 space-y-4 bg-white shadow-card border border-grey-line rounded-lg relative"
         >
           <div
-            class="flex items-start justify-start space-x-4 pb-4 border-b border-gray-200"
+            class="flex items-start justify-start space-x-4 py-4 px-6 border-b border-grey-line"
           >
-            <h3 class="text-lg font-medium text-gray-900">Activities</h3>
+            <h3 class="text-base font-medium text-gray-900">Activity</h3>
           </div>
 
-          <div class="relative">
+          <div class="relative py-4 px-6">
             <div
               class="flex items-start justify-center space-x-4 pb-6 relative"
               v-for="(activity, index) in activities"
@@ -276,12 +356,12 @@
                 <img
                   v-if="getUserPhoto(activity.user)"
                   :src="getUserPhoto(activity.user)"
-                  class="flex-none h-8 w-8 rounded-full shadow-sm border-gray-200 fill-current text-gray-500 shadow-sm object-contain relative z-10"
+                  class="flex-none h-10 w-10 rounded-full shadow-sm border-grey-line fill-current text-gray-500 shadow-sm object-contain relative z-10"
                   alt="Photo"
                 />
                 <svg
                   v-else
-                  class="flex-none h-8 w-8 rounded-full shadow-sm border-gray-200 fill-current text-gray-500 shadow-sm relative z-10 bg-white"
+                  class="flex-none h-10 w-10 rounded-full shadow-sm border-grey-line fill-current text-gray-500 shadow-sm relative z-10 bg-white"
                   viewBox="0 0 24 24"
                 >
                   <path
@@ -290,14 +370,14 @@
                 </svg>
                 <div
                   v-if="index !== activities.length - 1"
-                  class="absolute top-0 bottom-0 h-full w-[1px] bg-gray-200 flex-1 z-0"
+                  class="absolute top-0 bottom-0 h-full w-[1px] bg-grey-line flex-1 z-0"
                 ></div>
               </div>
 
-              <div class="w-full flex-1 rounded-lg px-4 space-y-1">
+              <div class="w-full flex-1 rounded-lg px-4">
                 <div class="flex items-center justify-center">
                   <h4
-                    class="text-gray-700 font-medium text-sm flex-1 text-left"
+                    class="text-gray-600 font-medium text-sm flex-1 text-left"
                   >
                     {{ getUserName(activity.user) }}
                   </h4>
@@ -340,9 +420,11 @@ import {
   ref,
   reactive,
   useContext,
-  onMounted,
+  computed,
   onBeforeMount,
 } from "@nuxtjs/composition-api";
+import { useFiles } from "~/composables/useFiles";
+import { isFileImage } from "~/utils/helpers.js";
 
 export default defineComponent({
   props: {
@@ -372,7 +454,7 @@ export default defineComponent({
       date: "",
       label: "",
       status: "Pending",
-      order: null,
+      order: 0,
       created: Date.now(),
       updated: Date.now(),
     });
@@ -380,11 +462,19 @@ export default defineComponent({
 
     const filelist = ref([]);
     const fileUpload = ref();
+    const { uploadFiles, getFiles } = useFiles();
+    const attachedFiles = ref([]);
+
+    const loadFiles = async () => {
+      attachedFiles.value = await getFiles(cardData.id);
+    };
+
     const forceRender = reactive({
       counter: 1,
       comments: 1,
       activities: 1,
     });
+    const showUploadOption = ref(true);
 
     const onChange = (e) => {
       filelist.value.push(...e.target.files);
@@ -518,7 +608,20 @@ export default defineComponent({
         .replace(/[^\w-]+/g, "");
     }
 
+    const runUploadTest = () => {
+      uploadFiles(filelist.value, cardData.id);
+    };
+
+    const initShowFileUploadOption = () => {
+      if (cardData.id) {
+        showUploadOption.value = false;
+      }
+    };
+
     onBeforeMount(() => {
+      loadFiles();
+      console.log(attachedFiles);
+      initShowFileUploadOption();
       currentUser.value = users.find((user) => user.id == fireUser.uid);
 
       const fireComments = $fire.database.ref(`comments/${cardData.id}`);
@@ -548,6 +651,10 @@ export default defineComponent({
       getUserPhoto,
       getUserName,
       currentUser,
+      runUploadTest,
+      attachedFiles,
+      isFileImage,
+      showUploadOption,
     };
   },
 });
