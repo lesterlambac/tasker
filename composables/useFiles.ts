@@ -1,53 +1,52 @@
 
-import { useContext, computed, watch, onMounted, } from "@nuxtjs/composition-api";
+import { useContext, computed, watch, onMounted, ref } from "@nuxtjs/composition-api";
 export function useFiles() {
 
   const { $fire } = useContext();
   const storage = $fire.storage;
+  const fireAttachedFiles = ref(<any>[]);
 
 
   const uploadFiles = async (files: any, taskId: String) => {
-    files.map(async (file: any) => {
+    for (let file of files) {
       const metadata = {
         contentType: file.type,
         fileName: file.name,
       }
       const fileDestination = storage.ref(`tasks/${taskId}/${file.name}`);
       await fileDestination.put(file, metadata);
-    })
+    }
   };
 
   const getFiles = async (taskId: String) => {
+    fireAttachedFiles.value = [];
     const files = <any>[];
     const fileDestination = $fire.storage.ref(`tasks/${taskId}`);
-    if (fileDestination) {
-      const res = await fileDestination.listAll()
-      res.items.map(async (item) => {
+    const res = await fileDestination.list()
 
-        const metaData = await item.getMetadata();
-        const downloadURL = await item.getDownloadURL();
+    if (res) {
+      for (let item of res.items) {
+        const data = await Promise.all([item.getMetadata(), item.getDownloadURL()])
+        if (data) {
+          fireAttachedFiles.value.push({
+            metaData: data[0],
+            downloadURL: data[1],
+          });
 
-        files.push({
-          metaData,
-          downloadURL,
-        });
-      })
+          files.push({
+            metaData: data[0],
+            downloadURL: data[1],
+          });
+        }
+      }
+
+      return files;
     }
-    console.log(files)
-    return files;
   }
-
-  onMounted(async () => {
-    // const fileDestination = $fire.storage.ref('attachments/lester');
-    // const res = await fileDestination.listAll()
-    // res.items.map(async (item) => {
-    //   console.log(await item.getMetadata())
-    //   console.log(await item.getDownloadURL())
-    // })
-  })
 
   return {
     uploadFiles,
     getFiles,
+    fireAttachedFiles,
   };
 }

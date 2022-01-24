@@ -115,7 +115,7 @@
           />
         </div>
 
-        <div v-if="showUploadOption">
+        <div v-if="showUploadOption" class="mt-4">
           <div
             class="p-12 border border-gray-300 border-dashed rounded-lg"
             @dragover="dragover"
@@ -185,8 +185,9 @@
 
           <!-- Test button -->
           <button
+            v-if="cardData.id"
             type="button"
-            @click="runUploadTest"
+            @click="fireUploadFiles"
             class="mt-4 w-full max-w-xs text-center block mx-auto pl-2 pr-4 py-2 text-sm font-medium text-white bg-gray-800 rounded-md hover:bg-gray-700"
           >
             <!-- <svg class="h-6 w-6" fill="none" viewbox="0 0 24 24">
@@ -210,57 +211,41 @@
           >
             <h3 class="text-base font-medium text-gray-900">Files</h3>
             <button
-              @click="showUploadOption = true"
+              @click="showUploadOption = !showUploadOption"
               type="button"
               class="py-2 px-3 text-xs font-medium hover:bg-gray-200 border border-gray-200 rounded"
             >
-              Show Upload Option
+              <span v-if="showUploadOption"> Hide Upload Option </span>
+              <span v-else> Show Upload Option </span>
             </button>
           </div>
 
           <div class="relative py-4 px-6">
-            <div
-              class="flex space-x-4 pb-6 relative"
-              v-for="file in attachedFiles"
-              :key="file.metaData.fileName"
-            >
-              <img
-                v-if="isFileImage(file.metaData)"
-                class="w-12 h-12 object-fit"
-                :src="file.downloadURL"
-                alt=""
-                :key="forceRender.counter"
+            <div v-if="loading.files" class="text-center py-6">
+              <LoadingSpinner
+                class="mr-2"
+                handle="text-gray-400"
+                circle="text-gray-800"
               />
-
-              <svg
-                v-else
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                class="flex-none h-10 w-10 shadow-sm border-grey-line fill-current text-gray-500 shadow-sm"
-              >
-                <path
-                  class="primary"
-                  d="M6 2h6v6c0 1.1.9 2 2 2h6v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4c0-1.1.9-2 2-2z"
-                ></path>
-                <polygon class="secondary" points="14 2 20 8 14 8"></polygon>
-              </svg>
-
-              <div class="flex flex-col flex-1">
-                <span class="text-gray-900 font-medium mb-1">{{
-                  file.metaData.name
-                }}</span>
-                <span class="text-gray-500">{{ file.metaData.size }} bytes</span>
-
-                <!-- <button
-                class="ml-2"
-                type="button"
-                @click="remove(filelist.indexOf(file))"
-                title="Remove file"
-              >
-                remove
-              </button> -->
-              </div>
+              Loading Files ...
             </div>
+            <template>
+              <!-- <div
+                class="flex space-x-4 pb-6 relative"
+                v-for="file in attachedFiles"
+                :key="file.metaData.name + '' + forceRender.files"
+              >
+                <FileRow :file="file" />
+              </div> -->
+
+              <div
+                class="flex space-x-4 pb-6 relative"
+                v-for="file in fireAttachedFiles"
+                :key="file.metaData.name + 'file'"
+              >
+                <FileRow :file="file" />
+              </div>
+            </template>
           </div>
         </div>
 
@@ -406,7 +391,15 @@
               stroke="currentColor"
             />
           </svg> -->
-          <span class="ml-1">Create</span>
+          <span v-if="loading.creatingTask">
+             <LoadingSpinner
+                class="mr-2"
+                handle="text-gray-400"
+                circle="text-gray-800"
+              />
+              Creating ...
+          </span>
+          <span v-else class="ml-1">Create</span>
         </button>
       </form>
     </ModalCenter>
@@ -462,17 +455,26 @@ export default defineComponent({
 
     const filelist = ref([]);
     const fileUpload = ref();
-    const { uploadFiles, getFiles } = useFiles();
+    const { uploadFiles, getFiles, fireAttachedFiles } = useFiles();
     const attachedFiles = ref([]);
 
     const loadFiles = async () => {
+      loading.files = true;
       attachedFiles.value = await getFiles(cardData.id);
+      forceRender.files = Date.now();
+      loading.files = false;
     };
 
     const forceRender = reactive({
       counter: 1,
       comments: 1,
       activities: 1,
+      files: 1,
+    });
+    const loading = reactive({
+      files: false,
+      uploading: false,
+      creating: false,
     });
     const showUploadOption = ref(true);
 
@@ -540,21 +542,28 @@ export default defineComponent({
     };
 
     const createCard = async () => {
-      const tasks = $fire.database.ref(
-        `tasks/${sluggify(form.value.title)}${Date.now()}`
-      );
+      loading.creating = true;
       try {
+        const title = `${sluggify(form.value.title)}${Date.now()}`
+        const tasks = $fire.database.ref(`tasks/${title}`);
+
         await tasks.set({
           ...form.value,
           checklist: [],
           comments: [],
           activity: [],
         });
+
+        await uploadFiles(filelist.value, title);
+        filelist.value = [];
+
       } catch (e) {
         console.log(e);
       }
+
       emit("close");
       alert("New task successfully created!");
+      loading.creating = false;
     };
 
     const deleteCard = async () => {
@@ -608,8 +617,16 @@ export default defineComponent({
         .replace(/[^\w-]+/g, "");
     }
 
-    const runUploadTest = () => {
-      uploadFiles(filelist.value, cardData.id);
+    const fireUploadFiles = async () => {
+      loading.uploading = true;
+      await uploadFiles(filelist.value, cardData.id);
+      loading.uploading = false;
+
+      loading.files = true;
+      await loadFiles();
+      loading.files = false;
+
+      filelist.value = [];
     };
 
     const initShowFileUploadOption = () => {
@@ -618,8 +635,9 @@ export default defineComponent({
       }
     };
 
+    loadFiles();
+
     onBeforeMount(() => {
-      loadFiles();
       console.log(attachedFiles);
       initShowFileUploadOption();
       currentUser.value = users.find((user) => user.id == fireUser.uid);
@@ -651,10 +669,13 @@ export default defineComponent({
       getUserPhoto,
       getUserName,
       currentUser,
-      runUploadTest,
+      uploadFiles,
+      fireUploadFiles,
       attachedFiles,
       isFileImage,
       showUploadOption,
+      loading,
+      fireAttachedFiles,
     };
   },
 });
