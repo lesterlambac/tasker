@@ -5,6 +5,7 @@ export function useFiles() {
   const { $fire } = useContext();
   const storage = $fire.storage;
   const fireAttachedFiles = ref(<any>[]);
+  const fireListFiles = ref();
 
 
   const uploadFiles = async (files: any, taskId: String) => {
@@ -22,7 +23,8 @@ export function useFiles() {
     fireAttachedFiles.value = [];
     const files = <any>[];
     const fileDestination = $fire.storage.ref(`tasks/${taskId}`);
-    const res = await fileDestination.list()
+    const res = await fileDestination.list();
+    fireListFiles.value = res;
 
     if (res) {
       for (let item of res.items) {
@@ -48,5 +50,6 @@ export function useFiles() {
     uploadFiles,
     getFiles,
     fireAttachedFiles,
+    fireListFiles,
   };
 }

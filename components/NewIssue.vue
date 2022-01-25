@@ -47,7 +47,7 @@
             Edit
           </div>
           <div
-            class="cursor-pointer block px-4 py-2 text-sm capitalize text-gray-700 hover:bg-grey-line hover:text-gray-900"
+            class="cursor-pointer block w-full text-left px-4 py-2 text-sm capitalize text-gray-700 hover:bg-grey-line hover:text-gray-900 disabled:text-gray-100 disabled:cursor-not-allowed"
             @click="deleteCard"
           >
             Delete
@@ -57,16 +57,15 @@
 
       <div
         v-if="!enableInputs"
-        class="inline-flex items-center justify-start space-x-2 border-b border-grey-line pb-4"
+        class="inline-flex items-center justify-start space-x-2 border-b border-grey-line pb-5"
       >
         <span
-          class="px-2 py-1 leading-tight inline-flex items-center bg-green-100 rounded-md shadow-sm border border-green-200"
+          class="px-2 py-1 leading-tight inline-flex items-center bg-gray-200 rounded"
         >
-          <span class="text-xs font-medium text-green-800">{{
+          <span class="text-xs font-medium text-gray-900">{{
             cardData.label
           }}</span>
         </span>
-
         <p class="text-gray-700 text-xs">
           🎯 {{ $moment(cardData.date).format("MMMM DD") }}
         </p>
@@ -218,7 +217,10 @@
             @click="fireUploadFiles"
             class="mt-4 w-full max-w-xs text-center block mx-auto pl-2 pr-4 py-2 text-sm font-medium text-white bg-gray-800 rounded-md hover:bg-gray-700"
           >
-            <span v-if="loading.uploading">
+            <span
+              v-if="loading.uploading"
+              class="flex items-center justify-center"
+            >
               <LoadingSpinner
                 class="mr-2"
                 handle="text-gray-400"
@@ -272,7 +274,7 @@
               <div
                 class="flex space-x-4 pb-2 relative"
                 v-for="(file, index) in fireAttachedFiles"
-                :key="file.metaData.name + 'file'"
+                :key="file.metaData.name + 'file' + forceRender.deleteFile"
               >
                 <FileRow :file="file" @delete="(e) => deleteFile(e, index)" />
               </div>
@@ -418,7 +420,10 @@
           type="submit"
           class="w-full max-w-xs text-center block mx-auto pl-2 pr-4 py-2 text-sm font-medium text-white bg-gray-800 rounded-md hover:bg-gray-700"
         >
-          <span v-if="loading.creatingTask">
+          <span
+            v-if="loading.creatingTask"
+            class="flex items-center justify-center"
+          >
             <LoadingSpinner
               class="mr-2"
               handle="text-gray-400"
@@ -427,7 +432,10 @@
             Creating ...
           </span>
 
-          <span v-else-if="loading.uploading">
+          <span
+            v-else-if="loading.uploading"
+            class="flex items-center justify-center"
+          >
             <LoadingSpinner
               class="mr-2"
               handle="text-gray-400"
@@ -445,7 +453,10 @@
           @click="editCard"
           class="w-full max-w-xs text-center block mx-auto pl-2 pr-4 py-2 text-sm font-medium text-white bg-gray-800 rounded-md hover:bg-gray-700"
         >
-          <span v-if="loading.editingTask">
+          <span
+            v-if="loading.editingTask"
+            class="flex items-center justify-center"
+          >
             <LoadingSpinner
               class="mr-2"
               handle="text-gray-400"
@@ -454,7 +465,10 @@
             Saving ...
           </span>
 
-          <span v-else-if="loading.uploading">
+          <span
+            v-else-if="loading.uploading"
+            class="flex items-center justify-center"
+          >
             <LoadingSpinner
               class="mr-2"
               handle="text-gray-400"
@@ -537,6 +551,7 @@ export default defineComponent({
       comments: 1,
       activities: 1,
       files: 1,
+      deleteFile: 1,
     });
     const loading = reactive({
       files: false,
@@ -626,7 +641,10 @@ export default defineComponent({
 
         loading.creatingTask = false;
 
+        loading.uploading = true;
         await uploadFiles(filelist.value, title);
+        loading.uploading = false;
+
         filelist.value = [];
       } catch (e) {
         console.log(e);
@@ -640,15 +658,14 @@ export default defineComponent({
       try {
         loading.editingTask = true;
         const task = $fire.database.ref(`tasks/${cardData.id}`);
-        console.log(cardData.id);
-        console.log(form.value);
-        task.update({
+        await task.update({
           ...form.value,
         });
 
         loading.editingTask = false;
+        console.log(filelist.value);
 
-        if (filelist.value) {
+        if (filelist.value.length) {
           await fireUploadFiles();
         }
       } catch (e) {
@@ -665,35 +682,45 @@ export default defineComponent({
     };
 
     const deleteCard = async () => {
+      const comments = $fire.database.ref("comments");
       const tasks = $fire.database.ref("tasks");
+      const activities = $fire.database.ref("activities");
+      const storage = $fire.storage.ref(`tasks/${cardData.id}`);
+
       try {
         await tasks.child(cardData.id).remove();
+        $toast.success("Task successfully deleted.").goAway(3000);
+
+        await comments.child(cardData.id).remove();
+        $toast.success("Task comments successfully removed.").goAway(3000);
+
+        await activities.child(cardData.id).remove();
+        $toast.success("Task activities successfully removed.").goAway(3000);
+
+        const fireListFiles = await storage.list();
+        for (let file of fireListFiles.items) {
+          await file.delete();
+        }
+        $toast.success("Task files successfully removed.").goAway(3000);
       } catch (e) {
         console.log(e);
       }
-      $toast.success("Deleted.").goAway(1500);
+      $toast.success("Task has been deleted and cleaned up.").goAway(3000);
       emit("close");
     };
 
     const deleteFile = async (file, index) => {
-      console.log(file)
-      console.log(index)
-      if (file.metaData.fullPath && cardData.id) {
-        const storage = $fire.storage.ref(
-          `tasks/${cardData.id}/${file.metaData.fullPath}`
-        );
-        storage.delete();
+      fireAttachedFiles.value.splice(index, 1);
+      forceRender.deleteFile = Date.now();
+      try {
+        if (file.metaData.fullPath && cardData.id) {
+          const storage = $fire.storage.ref(file.metaData.fullPath);
+          await storage.delete();
+          $toast.success("File successfully deleted on server.").goAway(1500);
+        }
+      } catch (e) {
+        $toast.error("Something went wrong.").goAway(1500);
       }
-
-      console.log(attachedFiles.value)
-
-      // try {
-      //   await tasks.child(cardData.id).remove();
-      // } catch (e) {
-      //   console.log(e);
-      // }
-      // $toast.success("Deleted.").goAway(1500);
-      // emit("close");
     };
 
     const sorter = (a, b) => (a.date < b.date ? 1 : -1);
@@ -740,7 +767,7 @@ export default defineComponent({
       loading.uploading = true;
       await uploadFiles(filelist.value, cardData.id);
       loading.uploading = false;
-      
+
       emit("uploaded");
       filelist.value = [];
       showUploadOption.value = false;
@@ -748,7 +775,6 @@ export default defineComponent({
       loading.files = true;
       await loadFiles();
       loading.files = false;
-
     };
 
     const initModalAction = () => {

@@ -474,4 +474,10 @@ export default defineComponent({
   border: 1px dashed #abc;
   margin: 5px 45px 5px 5px;
 }
+
+.smooth-dnd-container {
+  position: relative;
+  min-height: 130px;
+  min-width: 30px;
+}
 </style>
