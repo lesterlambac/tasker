@@ -30,7 +30,6 @@ module.exports = {
         ternary: "#EEEDFD",
 
         black: "#1B1C31",
-        green: "#27AE60",
         yellow: "#F2C94C",
 
         border: "#D1D1D1",

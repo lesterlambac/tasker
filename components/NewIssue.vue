@@ -48,14 +48,14 @@
         class="inline-flex items-center justify-start space-x-2 border-b border-grey-line pb-4"
       >
         <span
-          class="px-2 py-1 leading-tight inline-flex items-center bg-teal-100 rounded-md"
+          class="px-2 py-1 leading-tight inline-flex items-center bg-green-100 rounded-md shadow-sm border border-green-200"
         >
-          <span class="text-xs font-medium text-teal-800">{{
+          <span class="text-xs font-medium text-green-800">{{
             cardData.label
           }}</span>
         </span>
 
-        <p class="text-gray-700 text-base">
+        <p class="text-gray-700 text-xs">
           🎯 {{ $moment(cardData.date).format("MMMM DD") }}
         </p>
       </div>
@@ -69,12 +69,12 @@
             v-if="!cardData.id"
             v-model="form.title"
             autocomplete="title"
-            placeholder="Title"
+            placeholder="Add Title"
             required
-            class="appearance-none border border-grey-line block w-full px-3 py-2 rounded-md shadow-sm placeholder-grey-light bg-white text-black focus:outline-none focus:border-grey-line focus:ring-1 focus:ring-grey-line focus:bg-white focus:text-black text-sm"
+            class="appearance-none border border-grey-line block w-full px-3 py-2 rounded-md shadow-sm placeholder-gray-400 bg-white text-black focus:outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-400 focus:bg-white focus:text-black text-sm"
           />
 
-          <h3 v-else class="text-gray-900 font-medium text-2xl my-2">
+          <h3 v-else class="text-gray-900 font-medium text-xl">
             {{ cardData.title }}
           </h3>
         </div>
@@ -85,22 +85,22 @@
             v-model="form.description"
             placeholder="Add Description"
             rows="3"
-            class="appearance-none border border-grey-line block w-full px-3 py-2 rounded-md shadow-sm placeholder-grey-light bg-white text-black focus:outline-none focus:border-grey-line focus:ring-1 focus:ring-grey-line focus:bg-white focus:text-black text-sm"
+            class="appearance-none border border-grey-line block w-full px-3 py-2 rounded-md shadow-sm placeholder-gray-400 bg-white text-black focus:outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-400 focus:bg-white focus:text-black text-sm"
           ></textarea>
 
           <p v-else class="text-gray-700 text-md">{{ cardData.description }}</p>
         </div>
 
-        <div class="mt-2">
-          <input
-            type="date"
-            v-if="!cardData.id"
-            v-model="form.date"
-            autocomplete="date"
-            placeholder="Date"
-            required
-            class="appearance-none border border-grey-line block w-full px-3 py-2 rounded-md shadow-sm placeholder-grey-light bg-white text-black focus:outline-none focus:border-grey-line focus:ring-1 focus:ring-grey-line focus:bg-white focus:text-black text-sm"
-          />
+        <div class="mt-2" v-if="!cardData.id">
+          <div class="date-picker">
+              <date-picker
+                v-model="form.date"
+                class="w-full"
+                placeholder="Add Deadline"
+                format="MM/dd/yyyy"
+              >
+              </date-picker>
+          </div>
         </div>
 
         <div class="mt-2">
@@ -109,9 +109,9 @@
             v-if="!cardData.id"
             v-model="form.label"
             autocomplete="label"
-            placeholder="Label"
+            placeholder="Add Label"
             required
-            class="appearance-none border border-grey-line block w-full px-3 py-2 rounded-md shadow-sm placeholder-grey-light bg-white text-black focus:outline-none focus:border-grey-line focus:ring-1 focus:ring-grey-line focus:bg-white focus:text-black text-sm"
+            class="appearance-none border border-grey-line block w-full px-3 py-2 rounded-md shadow-sm placeholder-gray-400 bg-white text-black focus:outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-400 focus:bg-white focus:text-black text-sm"
           />
         </div>
 
@@ -278,7 +278,7 @@
               @keydown.enter.exact="createComment"
               placeholder="Leave a comment"
               rows="2"
-              class="appearance-none border-none block w-full px-3 py-2 rounded-md placeholder-grey-light bg-white text-black focus:outline-none focus:border-grey-line focus:ring-1 focus:ring-grey-line focus:bg-white focus:text-black text-sm"
+              class="appearance-none border-none block w-full px-3 py-2 rounded-md placeholder-gray-400 bg-white text-black focus:outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-400 focus:bg-white focus:text-black text-sm"
             ></textarea>
           </div>
 
@@ -308,7 +308,9 @@
 
               <div class="w-full flex-1 bg-grey-light rounded-lg p-4">
                 <div class="flex items-center justify-center mb-2">
-                  <h4 class="text-gray-900 font-medium text-sm flex-1 text-left">
+                  <h4
+                    class="text-gray-900 font-medium text-sm flex-1 text-left"
+                  >
                     {{ comment.name }}
                   </h4>
                   <span class="text-gray-500 text-xs flex-none">{{
@@ -321,7 +323,6 @@
               </div>
             </div>
           </template>
-
         </div>
 
         <div
@@ -395,12 +396,12 @@
             />
           </svg> -->
           <span v-if="loading.creatingTask">
-             <LoadingSpinner
-                class="mr-2"
-                handle="text-gray-400"
-                circle="text-gray-800"
-              />
-              Creating ...
+            <LoadingSpinner
+              class="mr-2"
+              handle="text-gray-400"
+              circle="text-gray-800"
+            />
+            Creating ...
           </span>
           <span v-else class="ml-1">Create</span>
         </button>
@@ -445,10 +446,10 @@ export default defineComponent({
     const dropdownOpen = ref(false);
 
     const form = ref({
-      title: "",
-      description: "",
-      date: "",
-      label: "",
+      title: null,
+      description: null,
+      date: null,
+      label: null,
       status: "Pending",
       order: 0,
       created: Date.now(),
@@ -547,7 +548,7 @@ export default defineComponent({
     const createCard = async () => {
       loading.creatingTask = true;
       try {
-        const title = `${sluggify(form.value.title)}${Date.now()}`
+        const title = `${sluggify(form.value.title)}${Date.now()}`;
         const tasks = $fire.database.ref(`tasks/${title}`);
 
         await tasks.set({
@@ -559,14 +560,13 @@ export default defineComponent({
 
         await uploadFiles(filelist.value, title);
         filelist.value = [];
-
       } catch (e) {
         console.log(e);
       }
 
       loading.creatingTask = false;
-      emit('close');
-      emit('created');
+      emit("close");
+      emit("created");
     };
 
     const deleteCard = async () => {
@@ -576,7 +576,7 @@ export default defineComponent({
       } catch (e) {
         console.log(e);
       }
-      $toast.success('Deleted.').goAway(1500);
+      $toast.success("Deleted.").goAway(1500);
       emit("close");
     };
 
@@ -684,7 +684,7 @@ export default defineComponent({
 });
 </script>
 
-<style scoped>
+<style lang="scss">
 .pop-enter-active,
 .pop-leave-active {
   transition: transform 0.4s cubic-bezier(0.5, 0, 0.5, 1), opacity 0.4s linear;
@@ -704,5 +704,35 @@ export default defineComponent({
   position: absolute;
   top: 1rem;
   z-index: 1;
+}
+
+.vdp-datepicker {
+  select,
+  input {
+    @apply appearance-none;
+    @apply border-grey-line;
+    @apply block;
+    @apply w-full;
+    @apply px-3;
+    @apply py-2;
+    @apply rounded-md;
+    @apply shadow-sm;
+    @apply placeholder-gray-400;
+    @apply bg-white;
+    @apply text-black;
+    @apply text-sm;
+    &:focus {
+      @apply outline-none;
+      @apply border-gray-400;
+      @apply ring-1;
+      @apply ring-gray-400;
+      @apply bg-white;
+      @apply text-black;
+    }
+  }
+}
+
+.date-picker select {
+  height: 2.5em;
 }
 </style>

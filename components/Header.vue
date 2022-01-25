@@ -1,11 +1,11 @@
 <template>
-  <div class="flex-shrink-0 sm:border-b-2 sm:border-gray-200">
+  <div class="flex-shrink-0 sm:border-b sm:border-gray-200 mb-8 max-w-[1068px] w-full mx-auto">
     <header>
       <div class="px-4 sm:px-6">
-        <div class="flex items-center justify-between py-2">
+        <div class="flex items-center justify-between py-4">
           <div class="sm:flex sm:items-center">
-            <h2 class="text-2xl font-semibold text-gray-900 leading-tight">
-              All Issues
+            <h2 class="text-2xl font-semibold text-gray-600 leading-tight">
+              tasker.io
             </h2>
           </div>
           <HeaderUser />

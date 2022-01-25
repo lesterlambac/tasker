@@ -1,6 +1,6 @@
 <template>
   <div class=" flex">
-    <Sidebar class="h-screen" />
+    <!-- <Sidebar class="h-screen" /> -->
 
     <div class="flex-1 min-w-0 flex flex-col bg-white">
       <Header />

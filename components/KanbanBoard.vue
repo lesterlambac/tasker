@@ -1,9 +1,9 @@
 <template>
-  <div class="flex-1 overflow-auto p-6 card-scene">
+  <div class="flex-1 overflow-auto p-6 card-scene mx-auto">
     <div class="mb-2">
       <button
         @click="createCard"
-        class="inline-flex items-center ml-3 pl-2 pr-4 py-2 text-sm font-medium text-white bg-gray-800 rounded-md hover:bg-gray-700"
+        class="inline-flex items-center ml-3 pl-2 pr-4 py-2 text-sm font-medium text-white bg-gray-600 rounded-md hover:bg-gray-700"
       >
         <svg class="h-6 w-6" fill="none" viewbox="0 0 24 24">
           <path
@@ -37,7 +37,7 @@
           >
             {{ column.name }}
           </h3>
-          <div class="flex-1 min-h-0 overflow-y-auto">
+          <div class="flex-1 min-h-0 overflow-y-visible">
             <div class="pt-1 pb-3 px-3 block">
               <Container
                 group-name="col"
