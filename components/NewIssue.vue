@@ -1,7 +1,7 @@
 <template>
   <div>
     <ModalCenter @close="$emit('close')">
-      <div v-if="cardData.id" class="inline-block relative float-right">
+      <div v-if="cardData.id" class="inline-block relative float-right mb-2">
         <button
           @click="dropdownOpen = !dropdownOpen"
           class="relative z-10 inline-block rounded-md p-2 focus:outline-none group"
@@ -29,11 +29,23 @@
           v-show="dropdownOpen"
           class="absolute right-0 mt-1 py-2 w-48 bg-white border border-gray-100 rounded-md shadow-xl z-20"
         >
-          <!-- <div
+          <div
+            v-if="enableInputs"
+            @click="
+              enableInputs = false;
+              dropdownOpen = false;
+            "
+            class="cursor-pointer block px-4 py-2 text-sm capitalize text-gray-700 hover:bg-grey-line hover:text-gray-900"
+          >
+            View
+          </div>
+          <div
+            v-if="!enableInputs"
+            @click="editingCard"
             class="cursor-pointer block px-4 py-2 text-sm capitalize text-gray-700 hover:bg-grey-line hover:text-gray-900"
           >
             Edit
-          </div> -->
+          </div>
           <div
             class="cursor-pointer block px-4 py-2 text-sm capitalize text-gray-700 hover:bg-grey-line hover:text-gray-900"
             @click="deleteCard"
@@ -44,7 +56,7 @@
       </div>
 
       <div
-        v-if="cardData.id"
+        v-if="!enableInputs"
         class="inline-flex items-center justify-start space-x-2 border-b border-grey-line pb-4"
       >
         <span
@@ -59,14 +71,15 @@
           🎯 {{ $moment(cardData.date).format("MMMM DD") }}
         </p>
       </div>
+
       <form
-        :class="[!cardData.id ? 'space-y-5' : '']"
+        :class="[enableInputs ? 'space-y-5' : '']"
         @submit.prevent="createCard"
       >
         <div class="mt-2">
           <input
             type="text"
-            v-if="!cardData.id"
+            v-if="enableInputs"
             v-model="form.title"
             autocomplete="title"
             placeholder="Add Title"
@@ -81,7 +94,7 @@
 
         <div class="mt-2">
           <textarea
-            v-if="!cardData.id"
+            v-if="enableInputs"
             v-model="form.description"
             placeholder="Add Description"
             rows="3"
@@ -91,33 +104,33 @@
           <p v-else class="text-gray-700 text-md">{{ cardData.description }}</p>
         </div>
 
-        <div class="mt-2" v-if="!cardData.id">
+        <div class="mt-2" v-if="enableInputs">
           <div class="date-picker">
-              <date-picker
-                v-model="form.date"
-                class="w-full"
-                placeholder="Add Deadline"
-                format="MM/dd/yyyy"
-              >
-              </date-picker>
+            <date-picker
+              v-model="form.date"
+              class="w-full"
+              placeholder="Add Deadline"
+              format="MM/dd/yyyy"
+              required
+            >
+            </date-picker>
           </div>
         </div>
 
         <div class="mt-2">
           <input
             type="text"
-            v-if="!cardData.id"
+            v-if="enableInputs"
             v-model="form.label"
             autocomplete="label"
             placeholder="Add Label"
-            required
             class="appearance-none border border-grey-line block w-full px-3 py-2 rounded-md shadow-sm placeholder-gray-400 bg-white text-black focus:outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-400 focus:bg-white focus:text-black text-sm"
           />
         </div>
 
-        <div v-if="showUploadOption" class="mt-4">
+        <div v-if="showUploadOption || enableInputs" class="mt-4">
           <div
-            class="p-12 border border-gray-300 border-dashed rounded-lg"
+            class="border border-gray-300 border-dashed rounded-lg hover:bg-gray-200"
             @dragover="dragover"
             @dragleave="dragleave"
             @drop="drop"
@@ -133,7 +146,7 @@
             />
 
             <label for="assetsFieldHandle" class="block cursor-pointer">
-              <div class="text-gray-500 text-center">
+              <div class="p-12 text-gray-500 text-center">
                 Drop files here to upload
               </div>
             </label>
@@ -146,11 +159,26 @@
               :key="file.name + forceRender.counter"
             >
               <img
+                v-if="file.src"
                 class="w-12 h-12 object-fit"
                 :src="file.src"
                 alt=""
                 :key="forceRender.counter"
               />
+
+              <svg
+                v-else
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                class="flex-none h-10 w-10 border-grey-line fill-current text-gray-500 shadow-sm"
+              >
+                <path
+                  class="primary"
+                  d="M6 2h6v6c0 1.1.9 2 2 2h6v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4c0-1.1.9-2 2-2z"
+                ></path>
+                <polygon class="secondary" points="14 2 20 8 14 8"></polygon>
+              </svg>
+
               <div class="flex flex-col flex-1">
                 <span class="text-gray-900 font-medium mb-1">{{
                   file.name
@@ -185,31 +213,42 @@
 
           <!-- Test button -->
           <button
-            v-if="cardData.id"
+            v-if="cardData.id && !enableInputs"
             type="button"
             @click="fireUploadFiles"
             class="mt-4 w-full max-w-xs text-center block mx-auto pl-2 pr-4 py-2 text-sm font-medium text-white bg-gray-800 rounded-md hover:bg-gray-700"
           >
-            <!-- <svg class="h-6 w-6" fill="none" viewbox="0 0 24 24">
-              <path
-                d="M12 7v10m5-5H7"
-                stroke-linecap="round"
-                stroke-width="2"
-                stroke="currentColor"
+            <span v-if="loading.uploading">
+              <LoadingSpinner
+                class="mr-2"
+                handle="text-gray-400"
+                circle="text-gray-800"
               />
-            </svg> -->
-            <span class="ml-1">Upload Now</span>
+              Uploading Files ...
+            </span>
+
+            <span v-else class="ml-1">Upload Now</span>
           </button>
         </div>
 
         <div
-          v-if="cardData.id"
-          class="mt-8 space-y-4 bg-white shadow-card border border-grey-line rounded-lg relative"
+          v-if="cardData.id && !enableInputs"
+          class="mt-8 bg-white shadow-card border border-grey-line rounded-lg relative"
         >
           <div
             class="flex items-center justify-between space-x-4 py-4 px-6 border-b border-grey-line"
           >
-            <h3 class="text-base font-medium text-gray-900">Files</h3>
+            <h3 class="text-base font-medium text-gray-900">
+              <span v-if="loading.files"
+                ><LoadingSpinner
+                  class="mr-2"
+                  handle="text-gray-400"
+                  circle="text-gray-800"
+                />
+                Loading Files ...</span
+              >
+              <span v-else> Files </span>
+            </h3>
             <button
               @click="showUploadOption = !showUploadOption"
               type="button"
@@ -220,15 +259,7 @@
             </button>
           </div>
 
-          <div class="relative py-4 px-6" v-if="fireAttachedFiles.length">
-            <div v-if="loading.files" class="text-center py-6">
-              <LoadingSpinner
-                class="mr-2"
-                handle="text-gray-400"
-                circle="text-gray-800"
-              />
-              Loading Files ...
-            </div>
+          <div class="relative" v-if="fireAttachedFiles.length">
             <template>
               <!-- <div
                 class="flex space-x-4 pb-6 relative"
@@ -239,18 +270,18 @@
               </div> -->
 
               <div
-                class="flex space-x-4 pb-6 relative"
-                v-for="file in fireAttachedFiles"
+                class="flex space-x-4 pb-2 relative"
+                v-for="(file, index) in fireAttachedFiles"
                 :key="file.metaData.name + 'file'"
               >
-                <FileRow :file="file" />
+                <FileRow :file="file" @delete="(e) => deleteFile(e, index)" />
               </div>
             </template>
           </div>
         </div>
 
         <div
-          v-if="cardData.id"
+          v-if="cardData.id && !enableInputs"
           class="mt-8 space-y-4 bg-white shadow-card border border-grey-line rounded-lg p-6"
         >
           <div
@@ -326,7 +357,7 @@
         </div>
 
         <div
-          v-if="cardData.id"
+          v-if="cardData.id && !enableInputs"
           class="mt-8 space-y-4 bg-white shadow-card border border-grey-line rounded-lg relative"
         >
           <div
@@ -383,18 +414,10 @@
         </div>
 
         <button
-          v-if="!cardData.id"
+          v-if="!cardData.id && enableInputs"
           type="submit"
           class="w-full max-w-xs text-center block mx-auto pl-2 pr-4 py-2 text-sm font-medium text-white bg-gray-800 rounded-md hover:bg-gray-700"
         >
-          <!-- <svg class="h-6 w-6" fill="none" viewbox="0 0 24 24">
-            <path
-              d="M12 7v10m5-5H7"
-              stroke-linecap="round"
-              stroke-width="2"
-              stroke="currentColor"
-            />
-          </svg> -->
           <span v-if="loading.creatingTask">
             <LoadingSpinner
               class="mr-2"
@@ -403,7 +426,44 @@
             />
             Creating ...
           </span>
+
+          <span v-else-if="loading.uploading">
+            <LoadingSpinner
+              class="mr-2"
+              handle="text-gray-400"
+              circle="text-gray-800"
+            />
+            Uploading Files ...
+          </span>
+
           <span v-else class="ml-1">Create</span>
+        </button>
+
+        <button
+          v-if="cardData.id && enableInputs"
+          type="button"
+          @click="editCard"
+          class="w-full max-w-xs text-center block mx-auto pl-2 pr-4 py-2 text-sm font-medium text-white bg-gray-800 rounded-md hover:bg-gray-700"
+        >
+          <span v-if="loading.editingTask">
+            <LoadingSpinner
+              class="mr-2"
+              handle="text-gray-400"
+              circle="text-gray-800"
+            />
+            Saving ...
+          </span>
+
+          <span v-else-if="loading.uploading">
+            <LoadingSpinner
+              class="mr-2"
+              handle="text-gray-400"
+              circle="text-gray-800"
+            />
+            Uploading Files ...
+          </span>
+
+          <span v-else class="ml-1">Save</span>
         </button>
       </form>
     </ModalCenter>
@@ -437,13 +497,16 @@ export default defineComponent({
     },
   },
   setup({ cardData, users }, { emit }) {
-    const { $fire, $toast } = useContext();
+    const { $fire, $toast, $moment } = useContext();
     const fireUser = $fire.auth.currentUser;
     const currentUser = ref({});
     const comments = ref([]);
     const activities = ref([]);
 
     const dropdownOpen = ref(false);
+    const showUploadOption = ref(true);
+    const enableInputs = ref(true);
+    const currentAction = ref("");
 
     const form = ref({
       title: null,
@@ -455,8 +518,8 @@ export default defineComponent({
       created: Date.now(),
       updated: Date.now(),
     });
-    const comment = ref();
 
+    const comment = ref();
     const filelist = ref([]);
     const fileUpload = ref();
     const { uploadFiles, getFiles, fireAttachedFiles } = useFiles();
@@ -480,10 +543,10 @@ export default defineComponent({
       uploading: false,
       creatingTask: false,
     });
-    const showUploadOption = ref(true);
 
     const onChange = (e) => {
       filelist.value.push(...e.target.files);
+      loadImagePreview();
     };
 
     const remove = (i) => {
@@ -493,23 +556,19 @@ export default defineComponent({
     const dragover = (event) => {
       event.preventDefault();
       // Add some visual fluff to show the user can drop its files
-      if (!event.currentTarget.classList.contains("bg-green-300")) {
+      if (!event.currentTarget.classList.contains("bg-green-100")) {
         event.currentTarget.classList.remove("bg-gray-100");
-        event.currentTarget.classList.add("bg-green-300");
+        event.currentTarget.classList.add("bg-green-100");
       }
     };
 
     const dragleave = (event) => {
       // Clean up
       event.currentTarget.classList.add("bg-gray-100");
-      event.currentTarget.classList.remove("bg-green-300");
+      event.currentTarget.classList.remove("bg-green-100");
     };
 
-    const drop = (event) => {
-      event.preventDefault();
-
-      filelist.value.push(...event.dataTransfer.files);
-
+    const loadImagePreview = () => {
       for (let i = 0; i < filelist.value.length; i++) {
         let reader = new FileReader();
         reader.onload = (e) => {
@@ -519,9 +578,16 @@ export default defineComponent({
 
         reader.readAsDataURL(filelist.value[i]);
       }
+    };
+
+    const drop = (event) => {
+      event.preventDefault();
+
+      filelist.value.push(...event.dataTransfer.files);
+      loadImagePreview();
 
       event.currentTarget.classList.add("bg-gray-100");
-      event.currentTarget.classList.remove("bg-green-300");
+      event.currentTarget.classList.remove("bg-green-100");
     };
 
     const createComment = async () => {
@@ -546,8 +612,8 @@ export default defineComponent({
     };
 
     const createCard = async () => {
-      loading.creatingTask = true;
       try {
+        loading.creatingTask = true;
         const title = `${sluggify(form.value.title)}${Date.now()}`;
         const tasks = $fire.database.ref(`tasks/${title}`);
 
@@ -558,15 +624,44 @@ export default defineComponent({
           activity: [],
         });
 
+        loading.creatingTask = false;
+
         await uploadFiles(filelist.value, title);
         filelist.value = [];
       } catch (e) {
         console.log(e);
       }
 
-      loading.creatingTask = false;
       emit("close");
       emit("created");
+    };
+
+    const editCard = async () => {
+      try {
+        loading.editingTask = true;
+        const task = $fire.database.ref(`tasks/${cardData.id}`);
+        console.log(cardData.id);
+        console.log(form.value);
+        task.update({
+          ...form.value,
+        });
+
+        loading.editingTask = false;
+
+        if (filelist.value) {
+          await fireUploadFiles();
+        }
+      } catch (e) {
+        console.log(e);
+      }
+
+      emit("edited");
+      emit("close");
+    };
+
+    const editingCard = async () => {
+      dropdownOpen.value = false;
+      enableInputs.value = true;
     };
 
     const deleteCard = async () => {
@@ -578,6 +673,27 @@ export default defineComponent({
       }
       $toast.success("Deleted.").goAway(1500);
       emit("close");
+    };
+
+    const deleteFile = async (file, index) => {
+      console.log(file)
+      console.log(index)
+      if (file.metaData.fullPath && cardData.id) {
+        const storage = $fire.storage.ref(
+          `tasks/${cardData.id}/${file.metaData.fullPath}`
+        );
+        storage.delete();
+      }
+
+      console.log(attachedFiles.value)
+
+      // try {
+      //   await tasks.child(cardData.id).remove();
+      // } catch (e) {
+      //   console.log(e);
+      // }
+      // $toast.success("Deleted.").goAway(1500);
+      // emit("close");
     };
 
     const sorter = (a, b) => (a.date < b.date ? 1 : -1);
@@ -624,25 +740,36 @@ export default defineComponent({
       loading.uploading = true;
       await uploadFiles(filelist.value, cardData.id);
       loading.uploading = false;
+      
+      emit("uploaded");
+      filelist.value = [];
+      showUploadOption.value = false;
 
       loading.files = true;
       await loadFiles();
       loading.files = false;
 
-      filelist.value = [];
     };
 
-    const initShowFileUploadOption = () => {
+    const initModalAction = () => {
       if (cardData.id) {
         showUploadOption.value = false;
+        enableInputs.value = false;
+
+        form.value.title = cardData.title;
+        form.value.description = cardData.description;
+        // form.value.date = $moment(cardData.date).format("MM/DD/YYYY");
+        form.value.date = $moment(cardData.date).format();
+        form.value.label = cardData.label;
+        form.value.status = cardData.status;
+        form.value.order = cardData.order;
       }
     };
 
     loadFiles();
+    initModalAction();
 
     onBeforeMount(() => {
-      console.log(attachedFiles);
-      initShowFileUploadOption();
       currentUser.value = users.find((user) => user.id == fireUser.uid);
 
       const fireComments = $fire.database.ref(`comments/${cardData.id}`);
@@ -679,6 +806,10 @@ export default defineComponent({
       showUploadOption,
       loading,
       fireAttachedFiles,
+      editingCard,
+      editCard,
+      enableInputs,
+      deleteFile,
     };
   },
 });

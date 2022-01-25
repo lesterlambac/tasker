@@ -1,5 +1,5 @@
 <template>
-  <div class="flex space-x-4 pb-6 relative w-full">
+  <div class="flex space-x-4  py-4 px-6 relative w-full  hover:bg-gray-100">
     <img
       v-if="isFileImage(file.metaData)"
       class="w-12 h-12 object-fit"
@@ -11,7 +11,7 @@
       v-else
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 24 24"
-      class="flex-none h-10 w-10 shadow-sm border-grey-line fill-current text-gray-500 shadow-sm"
+      class="flex-none h-10 w-10 border-grey-line fill-current text-gray-500 shadow-sm"
     >
       <path
         class="primary"
@@ -20,11 +20,11 @@
       <polygon class="secondary" points="14 2 20 8 14 8"></polygon>
     </svg>
 
-    <div class="flex flex-col flex-1">
-      <a :href="file.downloadURL" target="_blank" class="text-gray-900 font-medium mb-1">{{
+    <div class="flex flex-col justify-center flex-1">
+      <a :href="file.downloadURL" target="_blank" class="text-gray-700 hover:text-gray-900 text-sm font-medium mb-1">{{
         file.metaData.name
       }}</a>
-      <span class="text-gray-500">{{ file.metaData.size }} bytes</span>
+      <span class="text-gray-500 text-xs">{{ file.metaData.size }} bytes</span>
 
       <!-- <button
                 class="ml-2"

@@ -58,7 +58,7 @@
                           <img
                             alt=""
                             class="h-6 w-6 rounded-full shadow border"
-                            src="/favicon.ico"
+                            :src="require('~/assets/icons/person.svg')"
                           />
                         </div>
                         <p
@@ -75,19 +75,11 @@
                         </div>
                         <div>
                           <span
-                            class="px-2 py-1 leading-tight inline-flex items-center bg-teal-100 rounded"
+                            class="px-2 py-1 leading-tight inline-flex items-center bg-gray-200 rounded"
                           >
-                            <svg
-                              class="h-2 w-2 text-teal-500"
-                              fill="currentColor"
-                              viewbox="0 0 8 8"
-                            >
-                              <circle cx="4" cy="4" r="3" />
-                            </svg>
-                            <span
-                              class="ml-1 text-xs font-medium text-teal-900"
-                              >{{ card.label }}</span
-                            >
+                            <span class="text-xs font-medium text-gray-900">{{
+                              card.label
+                            }}</span>
                           </span>
                         </div>
                       </div>
@@ -106,7 +98,9 @@
       :users="users"
       v-if="showNewIssueModal"
       @close="showNewIssueModal = false"
-      @created="$toast.success('Added new issue.').goAway(1500)"
+      @created="$toast.success('New task sucessfully added.').goAway(1500)"
+      @edited="$toast.success('Task successfully edited. 🎉').goAway(1500)"
+      @uploaded="$toast.success('Files successfully uploaded. 🎉').goAway(1500)"
     />
   </div>
 </template>

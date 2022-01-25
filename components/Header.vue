@@ -1,5 +1,7 @@
 <template>
-  <div class="flex-shrink-0 sm:border-b sm:border-gray-200 mb-8 max-w-[1068px] w-full mx-auto">
+  <div
+    class="flex-shrink-0 sm:border-b sm:border-gray-200 mb-8 max-w-[1068px] w-full mx-auto shadow-sm rounded-b-xl"
+  >
     <header>
       <div class="px-4 sm:px-6">
         <div class="flex items-center justify-between py-4">
@@ -11,7 +13,7 @@
           <HeaderUser />
         </div>
       </div>
-      <div class="flex px-4 p-1 border-t border-b bg-gray-200 sm:hidden">
+      <!-- <div class="flex px-4 p-1 border-t border-b bg-gray-200 sm:hidden">
         <button
           class="inline-flex items-center justify-center w-1/2 px-2 py-1 rounded"
         >
@@ -41,7 +43,7 @@
             >Board</span
           >
         </button>
-      </div>
+      </div> -->
     </header>
   </div>
 </template>
