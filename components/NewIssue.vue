@@ -127,6 +127,10 @@
           />
         </div>
 
+        <div>
+          <SelectUser  v-if="enableInputs" :setSelectedUser="setSelectedUser" @selected="(e) => form.assignedTo = e.id" />
+        </div>
+
         <div v-if="showUploadOption || enableInputs" class="mt-4">
           <div
             class="border border-gray-300 border-dashed rounded-lg hover:bg-gray-200"
@@ -290,8 +294,8 @@
             class="flex items-start justify-center space-x-4 pb-2 border-b border-grey-line"
           >
             <img
-              v-if="currentUser.photo"
-              :src="currentUser.photo"
+              v-if="user.photo"
+              :src="user.photo"
               class="flex-none h-10 w-10 rounded-full shadow-sm border-grey-line fill-current text-gray-500 shadow-sm object-contain"
               alt="Photo"
             />
@@ -493,6 +497,7 @@ import {
   useContext,
   computed,
   onBeforeMount,
+  useStore,
 } from "@nuxtjs/composition-api";
 import { useFiles } from "~/composables/useFiles";
 import { isFileImage } from "~/utils/helpers.js";
@@ -512,8 +517,10 @@ export default defineComponent({
   },
   setup({ cardData, users }, { emit }) {
     const { $fire, $toast, $moment } = useContext();
-    const fireUser = $fire.auth.currentUser;
-    const currentUser = ref({});
+
+    const store = useStore();
+    const user = computed(() => store.state.user);
+
     const comments = ref([]);
     const activities = ref([]);
 
@@ -529,9 +536,12 @@ export default defineComponent({
       label: null,
       status: "Pending",
       order: 0,
+      assignedTo: null,
       created: Date.now(),
       updated: Date.now(),
     });
+
+    const setSelectedUser = ref("");
 
     const comment = ref();
     const filelist = ref([]);
@@ -608,15 +618,15 @@ export default defineComponent({
     const createComment = async () => {
       const comments = $fire.database.ref(
         `comments/${cardData.id}/user-${
-          currentUser.value.id
+          user.value.id
         }-date-${Date.now()}`
       );
       try {
         await comments.set({
-          id: `user-${currentUser.value.id}-date-${Date.now()}`,
-          user: currentUser.value.id,
-          email: currentUser.value.email,
-          name: currentUser.value.name,
+          id: `user-${user.value.id}-date-${Date.now()}`,
+          user: user.value.id,
+          email: user.value.email,
+          name: user.value.name,
           message: comment.value,
           date: Date.now(),
         });
@@ -634,7 +644,7 @@ export default defineComponent({
 
         await tasks.set({
           ...form.value,
-          createdBy: currentUser.value.id,
+          createdBy: user.value.id,
           checklist: [],
           comments: [],
           activity: [],
@@ -664,7 +674,6 @@ export default defineComponent({
         });
 
         loading.editingTask = false;
-        console.log(filelist.value);
 
         if (filelist.value.length) {
           await fireUploadFiles();
@@ -785,9 +794,9 @@ export default defineComponent({
 
         form.value.title = cardData.title;
         form.value.description = cardData.description;
-        // form.value.date = $moment(cardData.date).format("MM/DD/YYYY");
         form.value.date = $moment(cardData.date).format();
         form.value.label = cardData.label;
+        setSelectedUser.value = cardData.assignedTo;
         form.value.status = cardData.status;
         form.value.order = cardData.order;
       }
@@ -797,7 +806,7 @@ export default defineComponent({
     initModalAction();
 
     onBeforeMount(() => {
-      currentUser.value = users.find((user) => user.id == fireUser.uid);
+      // user.value = users.find((user) => user.id == fireUser.uid);
 
       const fireComments = $fire.database.ref(`comments/${cardData.id}`);
       fireComments.on("value", getComments);
@@ -825,7 +834,7 @@ export default defineComponent({
       createComment,
       getUserPhoto,
       getUserName,
-      currentUser,
+      user,
       uploadFiles,
       fireUploadFiles,
       attachedFiles,
@@ -837,6 +846,7 @@ export default defineComponent({
       editCard,
       enableInputs,
       deleteFile,
+      setSelectedUser,
     };
   },
 });

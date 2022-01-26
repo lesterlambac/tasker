@@ -16,22 +16,18 @@ import { RootState } from "~/store";
 import { useUsers } from "~/composables/useUsers";
 
 export default defineComponent({
-  middleware: "auth",
+  middleware: "authHandle",
   layout: "default",
   setup() {
     const store = useStore<RootState>();
     const user = computed(() => store.getters.getUser);
-    const { getUsers } = useUsers();
-    const fireUsers = ref(<any>[]);
-
-    useFetch(async () => {
-      fireUsers.value = await getUsers();
-    });
+    const { redirect } = useContext();
+    // const { users } = useUsers();
+    // const fireUsers = computed(() => users);
 
     onMounted(() => {
-      if (fireUsers.value) {
-        store.commit("setUsers", fireUsers.value);
-      }
+      // console.log(fireUsers.value) 
+      
     });
 
     return {

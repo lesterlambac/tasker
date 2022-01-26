@@ -1,28 +1,35 @@
-import { defineComponent, useContext } from "@nuxtjs/composition-api";
+import { defineComponent, useContext, useStore, ref } from "@nuxtjs/composition-api";
+import { RootState } from "~/store";
+
+
 
 export function useUsers() {
+
+  const store = useStore<RootState>();
   const { $fire } = useContext();
 
-  const getUsers = () => {
+  const fireUsers = ref();
 
-    const fireUsers = <any>[];
+  const getUsers = async () => {
+    
+    fireUsers.value = [];
     const users = $fire.database.ref('users');
-
     users.on('value', (items) => {
       items.forEach((child) => {
 
-        fireUsers.push({
+        fireUsers.value.push({
           id: child.key,
           ...child.val(),
         });
 
       })
     })
-
-    return fireUsers;
   }
 
+  getUsers();
+
   return {
+    fireUsers,
     getUsers,
   }
 

@@ -32,8 +32,7 @@ export const mutations: MutationTree<RootState> = {
 
 export const actions: ActionTree<RootState, RootState> = {
   fireLoadUsers({ commit, state }) {
-    // const { getUsers } = useUsers();
-    // commit('setUsers', getUsers());
-    // commit('setUser');
+    const { getUsers } = useUsers();
+    commit('setUsers', getUsers());
   }
 };

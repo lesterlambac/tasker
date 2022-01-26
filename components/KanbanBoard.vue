@@ -58,7 +58,10 @@
                           <img
                             alt=""
                             class="h-6 w-6 rounded-full shadow border"
-                            :src="require('~/assets/icons/person.svg')"
+                            :src="
+                              getAssigedUser(card.assignedTo) ||
+                              require('~/assets/icons/person.svg')
+                            "
                           />
                         </div>
                         <p
@@ -115,7 +118,7 @@ import {
   ref,
   reactive,
   useContext,
-  useFetch,
+  useStore,
   computed,
   onMounted,
 } from "@nuxtjs/composition-api";
@@ -128,6 +131,9 @@ export default defineComponent({
     const fireTasks = $fire.database.ref("tasks");
     const fireUsers = $fire.database.ref("users");
     const fireActivities = $fire.database.ref("activities");
+
+    const store = useStore();
+    const user = computed(() => store.state.user);
 
     const cardTracker = reactive({
       dropCounter: 1,
@@ -278,7 +284,6 @@ export default defineComponent({
     const viewCard = (card) => {
       cardData.value = card;
       showNewIssueModal.value = true;
-      console.log(card);
     };
 
     const createCard = () => {
@@ -288,22 +293,29 @@ export default defineComponent({
 
     const createActivity = async (taskId, activityType, data) => {
       const fireActivity = $fire.database.ref(
-        `activities/${taskId}/user-${
-          $fire.auth.currentUser.uid
-        }-date-${Date.now()}`
+        `activities/${taskId}/user-${user.value.id}-date-${Date.now()}`
       );
       try {
         await fireActivity.set({
-          id: `user-${$fire.auth.currentUser.uid}-date-${Date.now()}`,
+          id: `user-${user.value.id}-date-${Date.now()}`,
           type: activityType,
           data: data,
-          user: $fire.auth.currentUser.uid,
+          user: user.value.id,
           date: Date.now(),
         });
       } catch (e) {
         console.log(e);
       }
-      console.log("New activity as been added.");
+    };
+
+    const getAssigedUser = (userId) => {
+      if (users.value) {
+        const selected = users.value.find((user) => user.id == userId);
+
+        if (selected) {
+          return selected.photo;
+        }
+      }
     };
 
     onMounted(async () => {
@@ -328,6 +340,7 @@ export default defineComponent({
       cardData,
       users,
       onDragEnd,
+      getAssigedUser,
       upperDropPlaceholderOptions: {
         className: "cards-drop-preview",
         animationDuration: "150",

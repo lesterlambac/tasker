@@ -1,5 +1,5 @@
 <template>
-  <div class="flex" :class="{ 'no-user' : noUser }">
+  <div class="flex" :class="{ 'no-user': noUser }">
     <!-- <Sidebar class="h-screen" /> -->
 
     <div class="flex-1 min-w-0 flex flex-col bg-white">
@@ -22,6 +22,12 @@ export default defineComponent({
   },
 });
 </script>
+
+<style scoped>
+.no-user {
+  pointer-events: none;
+}
+</style>
 
 
 
