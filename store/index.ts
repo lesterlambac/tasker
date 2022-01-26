@@ -1,59 +1,39 @@
 import { GetterTree, ActionTree, MutationTree } from "vuex";
+import { useUsers } from "~/composables/useUsers";
 
 export const state = () => ({
+  fireUser: null,
   user: null,
-  organizations: [],
-  addresses: [],
-  currentOrganizationId: null
+  users: [],
 });
 
 export type RootState = ReturnType<typeof state>;
 
 export const getters: GetterTree<RootState, RootState> = {
-  currentOrganization(state: any) {
-    return state.organizations.find(
-      (org: any) => org._id === state.currentOrganizationId
+  getUser(state: any) {
+    if (!state.fireUser) return null;
+    return state.users.find(
+      (item: any) => item.id === state.fireUser
     );
   },
-  withdrawAddresses(state: any) {
-    return state.addresses;
-  },
-  currentWithdrawAddress(state: any) {
-    return state.addresses.length > 0 ? state.addresses[0] : null;
-  },
-  primaryWithdrawAddress(state: any) {
-    return state.addresses.length > 0 ? state.addresses.find((address: any) => address.isPrimary) : null;
-  },
-  currentUserAddress(state: any) {
-    return state.user.publicAddress;
-  },
-  isInstantLinkReady(state: any, getters) {
-    const org = getters.currentOrganization;
-    if (!org) return false;
-    const { username, preferredNetworks, preferredTokenSymbols, publicAddress } = org;
-    if (!username || !preferredNetworks.length || !preferredTokenSymbols.length || !publicAddress) {
-      return false;
-    }
-    return true;
-  }
 };
 
 export const mutations: MutationTree<RootState> = {
+  setFireUser(state, fireUser: any) {
+    state.fireUser = fireUser;
+  },
   setUser(state: any, user: any) {
     state.user = user;
   },
-  setOrganizations(state: any, organizations: any[]) {
-    state.organizations = organizations;
-    if (state.currentOrganizationId === null && organizations.length > 0) {
-      state.currentOrganizationId = organizations[0]._id;
-    }
+  setUsers(state: any, users: any[]) {
+    state.users = users;
   },
-  setAddresses(state: any, addresses: any[]) {
-    state.addresses = addresses;
-  },
-  setCurrentOrganizationId(state: any, id: any) {
-    state.currentOrganizationId = id;
-  }
 };
 
-export const actions: ActionTree<RootState, RootState> = {};
+export const actions: ActionTree<RootState, RootState> = {
+  fireLoadUsers({ commit, state }) {
+    // const { getUsers } = useUsers();
+    // commit('setUsers', getUsers());
+    // commit('setUser');
+  }
+};

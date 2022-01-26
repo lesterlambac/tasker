@@ -1,7 +1,6 @@
 import Cookies from "universal-cookie";
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 
-const auth = async ({ redirect, ssrContext, $fire }) => {
+const auth = async ({ redirect, ssrContext, $fire, store, }) => {
   try {
     const cookies = new Cookies(
       ssrContext ? ssrContext.req.headers.cookie : null
@@ -19,6 +18,8 @@ const auth = async ({ redirect, ssrContext, $fire }) => {
     if (user.user.email !== email) {
       return redirect("/login");
     }
+
+    store.commit('setFireUser', user.user.uid);
 
   } catch (e) {
     console.log(e)

@@ -634,6 +634,7 @@ export default defineComponent({
 
         await tasks.set({
           ...form.value,
+          createdBy: currentUser.value.id,
           checklist: [],
           comments: [],
           activity: [],
