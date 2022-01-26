@@ -1,5 +1,5 @@
 <template>
-  <div class=" flex">
+  <div class="flex" :class="{ 'no-user' : noUser }">
     <!-- <Sidebar class="h-screen" /> -->
 
     <div class="flex-1 min-w-0 flex flex-col bg-white">
@@ -13,6 +13,7 @@
 import { defineComponent, ref } from "@nuxtjs/composition-api";
 
 export default defineComponent({
+  props: ["noUser"],
   setup() {
     const sidebarOpen = ref(true);
     return {
@@ -21,4 +22,6 @@ export default defineComponent({
   },
 });
 </script>
+
+
 
