@@ -3,7 +3,7 @@ import { useUsers } from "~/composables/useUsers";
 
 export const state = () => ({
   fireUser: null,
-  user: null,
+  user: {},
   users: [],
 });
 

@@ -55,7 +55,7 @@
         </div>
       </div>
 
-      <div
+      <!-- <div
         v-if="!enableInputs"
         class="inline-flex items-center justify-start space-x-2 border-b border-grey-line pb-5"
       >
@@ -69,13 +69,13 @@
         <p class="text-gray-700 text-xs">
           🎯 {{ $moment(cardData.date).format("MMMM DD") }}
         </p>
-      </div>
+      </div> -->
 
       <form
         :class="[enableInputs ? 'space-y-5' : '']"
         @submit.prevent="createCard"
       >
-        <div class="mt-2">
+        <div class="mt-4">
           <input
             type="text"
             v-if="enableInputs"
@@ -128,7 +128,70 @@
         </div>
 
         <div>
-          <SelectUser  v-if="enableInputs" :setSelectedUser="setSelectedUser" @selected="(e) => form.assignedTo = e.id" />
+          <SelectUser
+            v-if="enableInputs"
+            :setSelectedUser="setSelectedUser"
+            @selected="(e) => (form.assignedTo = e.id)"
+          />
+        </div>
+
+        <div class="my-6" v-if="!enableInputs">
+          <div class="h-1 border-b border-grey-line"></div>
+          <div class="grid grid-flow-col py-2">
+            <div class="flex flex-col">
+              <span class="text-grey text-xs mb-1">Label</span>
+              <span class="leading-tight inline-flex items-center">
+                <span class="px-2 py-1 text-xs font-medium text-gray-900 w-auto bg-gray-200 rounded">{{
+                  cardData.label
+                }}</span>
+              </span>
+            </div>
+            <div class="flex flex-col">
+              <span class="text-grey text-xs mb-1">Deadline</span>
+              <div>
+                <span class="flex items-center justify-start mr-1 leading-tight"
+                  >🎯 {{ $moment(cardData.date).format("MMMM DD") }}</span
+                >
+              </div>
+            </div>
+            <div class="flex flex-col">
+              <span class="text-grey text-xs mb-1">Assignee</span>
+              <div>
+                <span class="flex items-center justify-start mr-1 leading-tight"
+                  ><img
+                    :src="
+                      getUserPhoto(cardData.assignedTo) ||
+                      require('~/assets/icons/person.svg')
+                    "
+                    alt=""
+                    class="object-contain w-4 h-4 mr-1 rounded-full"
+                  />
+                  <span class="mr-1">{{
+                    getUserName(cardData.assignedTo)
+                  }}</span>
+                </span>
+              </div>
+            </div>
+            <div class="flex flex-col">
+              <span class="text-grey text-xs mb-1">Owner</span>
+              <div>
+                <span class="flex items-center justify-start mr-1 leading-tight"
+                  ><img
+                    :src="
+                      getUserPhoto(cardData.createdBy) ||
+                      require('~/assets/icons/person.svg')
+                    "
+                    alt=""
+                    class="object-contain w-4 h-4 mr-1 rounded-full"
+                  />
+                  <span class="mr-1">{{
+                    getUserName(cardData.createdBy)
+                  }}</span>
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="h-1 border-b border-line"></div>
         </div>
 
         <div v-if="showUploadOption || enableInputs" class="mt-4">
@@ -617,9 +680,7 @@ export default defineComponent({
 
     const createComment = async () => {
       const comments = $fire.database.ref(
-        `comments/${cardData.id}/user-${
-          user.value.id
-        }-date-${Date.now()}`
+        `comments/${cardData.id}/user-${user.value.id}-date-${Date.now()}`
       );
       try {
         await comments.set({
@@ -766,6 +827,10 @@ export default defineComponent({
       return users.find((user) => user.id == userId).name;
     };
 
+    const getUserDetails = (userId) => {
+      return users.find((user) => user.id == userId);
+    };
+
     function sluggify(text) {
       return text
         .toLowerCase()
@@ -834,6 +899,7 @@ export default defineComponent({
       createComment,
       getUserPhoto,
       getUserName,
+      getUserDetails,
       user,
       uploadFiles,
       fireUploadFiles,

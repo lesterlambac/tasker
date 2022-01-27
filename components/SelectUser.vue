@@ -49,7 +49,7 @@
           selectedUser ? 'text-black' : 'text-grey-light',
         ]"
         v-model="inputValue"
-        :placeholder="users.length ? 'Assign user' : 'No users'"
+        :placeholder="users.length ? 'Assign Person' : 'No Users'"
         ref="input"
       />
 
@@ -178,7 +178,6 @@ export default defineComponent({
       showCustomSelect.value = !showCustomSelect.value;
       setTimeout(() => {
         (input.value as any).focus();
-        (input.value as any).clear();
       });
     };
 

@@ -6,7 +6,7 @@
       <transition name="fade" appear>
         <div
           @click="$emit('close')"
-          class="fixed inset-0 transition-opacity bg-black bg-opacity-40 transition duration-200 ease-in-out"
+          class="fixed inset-0 bg-black bg-opacity-40 transition duration-200 ease-in-out"
           aria-hidden="true"
         ></div>
       </transition>
@@ -18,7 +18,7 @@
       >
       <transition name="pop" appear>
         <div
-          class="inline-block w-full p-6 m-6 text-left align-bottom transition-all transform bg-grey-light shadow-xl rounded-xl sm:align-middle sm:max-w-[600px]"
+          class="inline-block w-full p-6 m-6 text-left align-bottom transition-all transform bg-grey-light shadow-xl rounded-xl sm:align-middle sm:max-w-[620px]"
         >
           <slot></slot>
         </div>
