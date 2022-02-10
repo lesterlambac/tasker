@@ -1,10 +1,6 @@
 <template>
   <div class="flex-1 overflow-auto p-6 card-scene mx-auto">
-
-    <div
-      v-if="loading.tasks"
-      class="flex items-center justify-center w-full"
-    >
+    <div v-if="loading.tasks" class="flex items-center justify-center w-full">
       <LoadingSpinner
         class="mr-2 h-12 w-12"
         handle="text-gray-400"
@@ -14,148 +10,156 @@
     </div>
 
     <template v-else>
-
-    <div class="mb-2">
-      <button
-        @click="createCard"
-        class="
-          inline-flex
-          items-center
-          ml-3
-          pl-2
-          pr-4
-          py-2
-          text-sm
-          font-medium
-          text-white
-          bg-gray-600
-          rounded-md
-          hover:bg-gray-700
-        "
-      >
-        <svg class="h-6 w-6" fill="none" viewbox="0 0 24 24">
-          <path
-            d="M12 7v10m5-5H7"
-            stroke-linecap="round"
-            stroke-width="2"
-            stroke="currentColor"
-          />
-        </svg>
-        <span class="ml-1">New Issue</span>
-      </button>
-    </div>
-
-    <Container
-      orientation="horizontal"
-      @drop="onColumnDrop($event)"
-      drag-handle-selector=".column-drag-handle"
-      @drag-start="dragStart"
-      :drop-placeholder="upperDropPlaceholderOptions"
-      class="p-3 inline-flex overflow-hidden"
-    >
-      <Draggable
-        v-for="column in scene.children"
-        :key="column.id + forceRender"
-      >
-        <div
+      <div class="mb-2">
+        <button
+          @click="createCard"
           class="
-            mr-3
-            flex-shrink-0 flex flex-col
-            w-80
-            bg-gray-100
+            inline-flex
+            items-center
+            ml-3
+            pl-2
+            pr-4
+            py-2
+            text-sm
+            font-medium
+            text-white
+            bg-gray-600
             rounded-md
-            h-full
+            hover:bg-gray-700
           "
         >
-          <h3
+          <svg class="h-6 w-6" fill="none" viewbox="0 0 24 24">
+            <path
+              d="M12 7v10m5-5H7"
+              stroke-linecap="round"
+              stroke-width="2"
+              stroke="currentColor"
+            />
+          </svg>
+          <span class="ml-1">New Issue</span>
+        </button>
+      </div>
+
+      <Container
+        orientation="horizontal"
+        @drop="onColumnDrop($event)"
+        drag-handle-selector=".column-drag-handle"
+        @drag-start="dragStart"
+        :drop-placeholder="upperDropPlaceholderOptions"
+        class="p-3 inline-flex overflow-hidden"
+      >
+        <Draggable
+          v-for="column in scene.children"
+          :key="column.id + forceRender"
+        >
+          <div
             class="
-              flex-shrink-0
-              pt-3
-              pb-1
-              px-3
-              text-sm
-              font-medium
-              text-gray-700
+              mr-3
+              flex-shrink-0 flex flex-col
+              w-80
+              bg-gray-100
+              rounded-md
+              h-full
             "
           >
-            {{ column.name }}
-          </h3>
-          <div class="flex-1 min-h-0 overflow-y-visible">
-            <div class="pt-1 pb-3 px-3 block">
-              <Container
-                group-name="col"
-                @drop="(e) => onCardDrop(column.id, e)"
-                @drag-start="(e) => log('drag start', e)"
-                @drag-end="(e) => onDragEnd(column.name, e)"
-                :get-child-payload="getCardPayload(column.id)"
-                drag-class="card-ghost"
-                drop-class="card-ghost-drop"
-                :drop-placeholder="dropPlaceholderOptions"
-                class="space-y-4"
-              >
-                <Draggable v-for="card in column.children" :key="card.id">
-                  <div @click="viewCard(card)">
-                    <div class="p-5 bg-white rounded-md shadow cursor-pointer">
-                      <div class="">
-                        <div class="float-right pl-6">
-                          <img
-                            alt=""
-                            class="h-6 w-6 rounded-full shadow border"
-                            :src="
-                              getAssigedUser(card.assignedTo) ||
-                              require('~/assets/icons/person.svg')
-                            "
-                          />
-                        </div>
-                        <p
-                          class="text-sm font-medium leading-snug text-gray-900"
-                        >
-                          {{ card.description }}
-                        </p>
-                      </div>
-                      <div class="mt-4 flex justify-between items-baseline">
-                        <div class="text-sm text-gray-600">
-                          <time datetime="2019-09-14">{{
-                            $moment(card.date).format("DD MMM YYYY")
-                          }}</time>
-                        </div>
-                        <div>
-                          <span
+            <h3
+              class="
+                flex-shrink-0
+                pt-3
+                pb-1
+                px-3
+                text-sm
+                font-medium
+                text-gray-700
+              "
+            >
+              {{ column.name }}
+            </h3>
+            <div class="flex-1 min-h-0 overflow-y-visible">
+              <div class="pt-1 pb-3 px-3 block">
+                <Container
+                  group-name="col"
+                  @drop="(e) => onCardDrop(column.id, e)"
+                  @drag-start="(e) => log('drag start', e)"
+                  @drag-end="(e) => onDragEnd(column.name, e)"
+                  :get-child-payload="getCardPayload(column.id)"
+                  drag-class="card-ghost"
+                  drop-class="card-ghost-drop"
+                  :drop-placeholder="dropPlaceholderOptions"
+                  class="space-y-4"
+                >
+                  <Draggable v-for="card in column.children" :key="card.id">
+                    <div @click="viewCard(card)">
+                      <div
+                        class="p-5 bg-white rounded-md shadow cursor-pointer"
+                      >
+                        <div class="">
+                          <div class="float-right pl-6">
+                            <img
+                              alt=""
+                              class="h-6 w-6 rounded-full shadow border"
+                              :src="
+                                getAssigedUser(card.assignedTo) ||
+                                require('~/assets/icons/person.svg')
+                              "
+                            />
+                          </div>
+                          <p
                             class="
-                              px-2
-                              py-1
-                              leading-tight
-                              inline-flex
-                              items-center
-                              bg-gray-200
-                              rounded
+                              text-sm
+                              font-medium
+                              leading-snug
+                              text-gray-900
                             "
                           >
-                            <span class="text-xs font-medium text-gray-900">{{
-                              card.label
-                            }}</span>
-                          </span>
+                            {{ card.description }}
+                          </p>
+                        </div>
+                        <div class="mt-4 flex justify-between items-baseline">
+                          <div class="text-sm text-gray-600">
+                            <time datetime="2019-09-14">{{
+                              $moment(card.date).format("DD MMM YYYY")
+                            }}</time>
+                          </div>
+                          <div>
+                            <span
+                              class="
+                                px-2
+                                py-1
+                                leading-tight
+                                inline-flex
+                                items-center
+                                bg-gray-200
+                                rounded
+                              "
+                            >
+                              <span class="text-xs font-medium text-gray-900">{{
+                                card.label
+                              }}</span>
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </Draggable>
-              </Container>
+                  </Draggable>
+                </Container>
+              </div>
             </div>
           </div>
-        </div>
-      </Draggable>
-    </Container>
+        </Draggable>
+      </Container>
 
-    <NewIssue
-      :cardData="cardData"
-      :users="users"
-      v-if="showNewIssueModal"
-      @close="showNewIssueModal = false"
-      @created="$toast.success('New task sucessfully added.').goAway(1500)"
-      @edited="$toast.success('Task successfully edited. 🎉').goAway(1500)"
-      @uploaded="$toast.success('Files successfully uploaded. 🎉').goAway(1500)"
-    />
+      <NewIssue
+        :cardData="cardData"
+        :users="users"
+        v-if="showNewIssueModal"
+        @close="showNewIssueModal = false"
+        @created="$toast.success('New task sucessfully added.').goAway(1500)"
+        @edited="$toast.success('Task successfully edited. 🎉').goAway(1500)"
+        @uploaded="
+          $toast.success('Files successfully uploaded. 🎉').goAway(1500)
+        "
+      />
     </template>
   </div>
 </template>
@@ -166,7 +170,7 @@ import { Container, Draggable } from "vue-smooth-dnd";
 
 import {
   defineComponent,
-  nextTick,
+  watch,
   ref,
   reactive,
   useContext,
@@ -194,7 +198,7 @@ export default defineComponent({
 
     const loading = reactive({
       tasks: true,
-    })
+    });
 
     const showNewIssueModal = ref(false);
     const cardData = ref({});
@@ -255,7 +259,7 @@ export default defineComponent({
       });
 
       let pendingToUser = [];
-      if (pendingTasks.value) {
+      if (pendingTasks.value.length) {
         pendingToUser = pendingTasks.value.filter((pendingTask) => {
           return pendingTask.assignedTo == user.value.id;
         });
@@ -382,10 +386,16 @@ export default defineComponent({
       }
     };
 
+    watch(
+      () => user.value,
+      () => {
+        fireTasks.orderByChild("order").on("value", getTasks);
+        fireUsers.orderByChild("order").on("value", getUsers);
+      }
+    );
+
     onMounted(async () => {
       loading.tasks = true;
-      fireTasks.orderByChild("order").on("value", getTasks);
-      fireUsers.orderByChild("order").on("value", getUsers);
     });
 
     return {
