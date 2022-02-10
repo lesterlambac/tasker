@@ -1,9 +1,37 @@
 <template>
   <div class="flex-1 overflow-auto p-6 card-scene mx-auto">
+
+    <div
+      v-if="loading.tasks"
+      class="flex items-center justify-center w-full"
+    >
+      <LoadingSpinner
+        class="mr-2 h-12 w-12"
+        handle="text-gray-400"
+        circle="text-gray-800"
+      />
+      Loading Issues ...
+    </div>
+
+    <template v-else>
+
     <div class="mb-2">
       <button
         @click="createCard"
-        class="inline-flex items-center ml-3 pl-2 pr-4 py-2 text-sm font-medium text-white bg-gray-600 rounded-md hover:bg-gray-700"
+        class="
+          inline-flex
+          items-center
+          ml-3
+          pl-2
+          pr-4
+          py-2
+          text-sm
+          font-medium
+          text-white
+          bg-gray-600
+          rounded-md
+          hover:bg-gray-700
+        "
       >
         <svg class="h-6 w-6" fill="none" viewbox="0 0 24 24">
           <path
@@ -30,10 +58,25 @@
         :key="column.id + forceRender"
       >
         <div
-          class="mr-3 flex-shrink-0 flex flex-col w-80 bg-gray-100 rounded-md h-full"
+          class="
+            mr-3
+            flex-shrink-0 flex flex-col
+            w-80
+            bg-gray-100
+            rounded-md
+            h-full
+          "
         >
           <h3
-            class="flex-shrink-0 pt-3 pb-1 px-3 text-sm font-medium text-gray-700"
+            class="
+              flex-shrink-0
+              pt-3
+              pb-1
+              px-3
+              text-sm
+              font-medium
+              text-gray-700
+            "
           >
             {{ column.name }}
           </h3>
@@ -78,7 +121,15 @@
                         </div>
                         <div>
                           <span
-                            class="px-2 py-1 leading-tight inline-flex items-center bg-gray-200 rounded"
+                            class="
+                              px-2
+                              py-1
+                              leading-tight
+                              inline-flex
+                              items-center
+                              bg-gray-200
+                              rounded
+                            "
                           >
                             <span class="text-xs font-medium text-gray-900">{{
                               card.label
@@ -105,6 +156,7 @@
       @edited="$toast.success('Task successfully edited. 🎉').goAway(1500)"
       @uploaded="$toast.success('Files successfully uploaded. 🎉').goAway(1500)"
     />
+    </template>
   </div>
 </template>
 
@@ -140,12 +192,16 @@ export default defineComponent({
       sourceColumn: "",
     });
 
+    const loading = reactive({
+      tasks: true,
+    })
+
     const showNewIssueModal = ref(false);
     const cardData = ref({});
     const forceRender = ref(1);
 
     const columnNames = ["Pending", "For Review", "Done"];
-    const pendingTasks = ref([]);
+    const pendingTasks = ref();
     const forReviewTasks = ref([]);
     const doneTasks = ref([]);
     const scene = ref({
@@ -198,11 +254,19 @@ export default defineComponent({
         }
       });
 
-      scene.value.children[0].children = pendingTasks.value;
+      let pendingToUser = [];
+      if (pendingTasks.value) {
+        pendingToUser = pendingTasks.value.filter((pendingTask) => {
+          return pendingTask.assignedTo == user.value.id;
+        });
+      }
+
+      scene.value.children[0].children = pendingToUser || pendingTasks.value;
       scene.value.children[1].children = forReviewTasks.value;
       scene.value.children[2].children = doneTasks.value;
 
       forceRender.value = Date.now();
+      loading.tasks = false;
     };
 
     const getUsers = (items) => {
@@ -319,6 +383,7 @@ export default defineComponent({
     };
 
     onMounted(async () => {
+      loading.tasks = true;
       fireTasks.orderByChild("order").on("value", getTasks);
       fireUsers.orderByChild("order").on("value", getUsers);
     });
@@ -341,6 +406,7 @@ export default defineComponent({
       users,
       onDragEnd,
       getAssigedUser,
+      loading,
       upperDropPlaceholderOptions: {
         className: "cards-drop-preview",
         animationDuration: "150",
