@@ -206,7 +206,7 @@ export default defineComponent({
 
     const columnNames = ["Pending", "For Review", "Done"];
     const pendingTasks = ref();
-    const forReviewTasks = ref([]);
+    const forReviewTasks = ref();
     const doneTasks = ref([]);
     const scene = ref({
       type: "container",
@@ -265,8 +265,18 @@ export default defineComponent({
         });
       }
 
+      let reviewToAdmin = [];
+      if (forReviewTasks.value.length) {
+        reviewToAdmin = forReviewTasks.value.filter((reviewAdmin) => {
+          return (
+            reviewAdmin.assignedTo == user.value.id ||
+            user.value.position == "admin"
+          );
+        });
+      }
+
       scene.value.children[0].children = pendingToUser || pendingTasks.value;
-      scene.value.children[1].children = forReviewTasks.value;
+      scene.value.children[1].children = reviewToAdmin || forReviewTasks.value;
       scene.value.children[2].children = doneTasks.value;
 
       forceRender.value = Date.now();
@@ -391,11 +401,15 @@ export default defineComponent({
       () => {
         fireTasks.orderByChild("order").on("value", getTasks);
         fireUsers.orderByChild("order").on("value", getUsers);
-      }
+      },
     );
 
     onMounted(async () => {
       loading.tasks = true;
+      if (user.value) {
+        fireTasks.orderByChild("order").on("value", getTasks);
+        fireUsers.orderByChild("order").on("value", getUsers);
+      }
     });
 
     return {
