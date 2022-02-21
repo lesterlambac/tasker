@@ -6,9 +6,10 @@
       <div class="px-4 sm:px-6">
         <div class="flex items-center justify-between py-4">
           <div class="sm:flex sm:items-center">
-            <h2 class="text-2xl font-semibold text-gray-600 leading-tight">
-              taskit.io
+            <h2 class="text-2xl font-semibold text-gray-600 leading-tight whitespace-nowrap">
+              Insta Tasks
             </h2>
+            <img src="/tasks.svg" class="ml-2 w-6" alt="">
           </div>
           <HeaderUser />
         </div>
