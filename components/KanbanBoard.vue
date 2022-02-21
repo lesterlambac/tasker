@@ -91,7 +91,7 @@
                   <Draggable v-for="card in column.children" :key="card.id">
                     <div @click="viewCard(card)">
                       <div
-                        class="p-5 bg-white rounded-md shadow cursor-pointer"
+                        class="p-5 bg-white rounded-md shadow cursor-pointer relative"
                       >
                         <div class="">
                           <div class="float-right pl-6">
@@ -104,10 +104,10 @@
                               "
                             />
                           </div>
+                          <h3 class="text-base font-medium mb-2 ">{{ card.title }}</h3>
                           <p
                             class="
                               text-sm
-                              font-medium
                               leading-snug
                               text-gray-900
                             "
@@ -411,7 +411,7 @@ export default defineComponent({
       () => {
         fireTasks.orderByChild("order").on("value", getTasks);
         fireUsers.orderByChild("order").on("value", getUsers);
-      },
+      }
     );
 
     onMounted(async () => {
