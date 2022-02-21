@@ -207,7 +207,7 @@ export default defineComponent({
     const columnNames = ["Pending", "For Review", "Done"];
     const pendingTasks = ref();
     const forReviewTasks = ref();
-    const doneTasks = ref([]);
+    const doneTasks = ref();
     const scene = ref({
       type: "container",
       props: {
@@ -275,9 +275,19 @@ export default defineComponent({
         });
       }
 
+      let doneToAdmin = [];
+      if (doneTasks.value.length) {
+        doneToAdmin = doneTasks.value.filter((doneTask) => {
+          return (
+            doneTask.assignedTo == user.value.id ||
+            user.value.position == "admin"
+          );
+        });
+      }
+
       scene.value.children[0].children = pendingToUser || pendingTasks.value;
       scene.value.children[1].children = reviewToAdmin || forReviewTasks.value;
-      scene.value.children[2].children = doneTasks.value;
+      scene.value.children[2].children = doneToAdmin || doneTasks.value;
 
       forceRender.value = Date.now();
       loading.tasks = false;
